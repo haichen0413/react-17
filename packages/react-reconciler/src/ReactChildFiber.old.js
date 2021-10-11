@@ -751,6 +751,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return knownKeys;
   }
 
+  // 处理数组diff
   function reconcileChildrenArray(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -776,14 +777,6 @@ function ChildReconciler(shouldTrackSideEffects) {
     // If you change this code, also update reconcileChildrenIterator() which
     // uses the same algorithm.
 
-    if (__DEV__) {
-      // First, validate keys.
-      let knownKeys = null;
-      for (let i = 0; i < newChildren.length; i++) {
-        const child = newChildren[i];
-        knownKeys = warnOnInvalidKey(child, knownKeys, returnFiber);
-      }
-    }
 
     let resultingFirstChild: Fiber | null = null;
     let previousNewFiber: Fiber | null = null;
@@ -837,12 +830,14 @@ function ChildReconciler(shouldTrackSideEffects) {
       oldFiber = nextOldFiber;
     }
 
+    // newChildren遍历完，oldFiber没遍历完
     if (newIdx === newChildren.length) {
       // We've reached the end of the new children. We can delete the rest.
       deleteRemainingChildren(returnFiber, oldFiber);
       return resultingFirstChild;
     }
 
+    // newChildren没遍历完，oldFiber遍历完
     if (oldFiber === null) {
       // If we don't have any more existing children we can choose a fast path
       // since the rest will all be insertions.
@@ -864,9 +859,12 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     // Add all children to a key map for quick lookups.
+    // 将所有子项添加到关键点映射以进行快速查找
     const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
 
+    // newChildren与oldFiber都没遍历完，这意味着有节点在这次更新中改变了位置
     // Keep scanning and use the map to restore deleted items as moves.
+    // 继续循环并使用映射将已删除的元素恢复为移动
     for (; newIdx < newChildren.length; newIdx++) {
       const newFiber = updateFromMap(
         existingChildren,
@@ -1115,6 +1113,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     return created;
   }
 
+  // 处理单个节点diff
   function reconcileSingleElement(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1123,9 +1122,11 @@ function ChildReconciler(shouldTrackSideEffects) {
   ): Fiber {
     const key = element.key;
     let child = currentFirstChild;
+    // 首先判断是否存在对应dom节点
     while (child !== null) {
       // TODO: If key === null and child.key === null, then this only applies to
       // the first item in the list.
+      // 首先比较key是否相同
       if (child.key === key) {
         const elementType = element.type;
         if (elementType === REACT_FRAGMENT_TYPE) {
@@ -1133,10 +1134,7 @@ function ChildReconciler(shouldTrackSideEffects) {
             deleteRemainingChildren(returnFiber, child.sibling);
             const existing = useFiber(child, element.props.children);
             existing.return = returnFiber;
-            if (__DEV__) {
-              existing._debugSource = element._source;
-              existing._debugOwner = element._owner;
-            }
+            
             return existing;
           }
         } else {
@@ -1160,17 +1158,16 @@ function ChildReconciler(shouldTrackSideEffects) {
             const existing = useFiber(child, element.props);
             existing.ref = coerceRef(returnFiber, child, element);
             existing.return = returnFiber;
-            if (__DEV__) {
-              existing._debugSource = element._source;
-              existing._debugOwner = element._owner;
-            }
+            
             return existing;
           }
         }
         // Didn't match.
+        // key相同，type不匹配
         deleteRemainingChildren(returnFiber, child);
         break;
       } else {
+        // key不同，将fiber标记为删除
         deleteChild(returnFiber, child);
       }
       child = child.sibling;
