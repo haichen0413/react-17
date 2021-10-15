@@ -179,10 +179,6 @@ function legacyRenderSubtreeIntoContainer(
   forceHydrate: boolean,
   callback: ?Function,
 ) {
-  if (__DEV__) {
-    topLevelUpdateWarnings(container);
-    warnOnInvalidCallback(callback === undefined ? null : callback, 'render');
-  }
 
   // TODO: Without `any` type, Flow says "Property cannot be accessed on any
   // member of intersection type." Whyyyyyy.
@@ -222,33 +218,14 @@ function legacyRenderSubtreeIntoContainer(
 }
 
 export function findDOMNode(
-  componentOrElement: Element | ?React$Component<any, any>,
-): null | Element | Text {
-  if (__DEV__) {
-    const owner = (ReactCurrentOwner.current: any);
-    if (owner !== null && owner.stateNode !== null) {
-      const warnedAboutRefsInRender = owner.stateNode._warnedAboutRefsInRender;
-      if (!warnedAboutRefsInRender) {
-        console.error(
-          '%s is accessing findDOMNode inside its render(). ' +
-            'render() should be a pure function of props and state. It should ' +
-            'never access something that requires stale data from the previous ' +
-            'render, such as refs. Move this logic to componentDidMount and ' +
-            'componentDidUpdate instead.',
-          getComponentName(owner.type) || 'A component',
-        );
-      }
-      owner.stateNode._warnedAboutRefsInRender = true;
-    }
-  }
+  componentOrElement
+) {
+  
   if (componentOrElement == null) {
     return null;
   }
-  if ((componentOrElement: any).nodeType === ELEMENT_NODE) {
-    return (componentOrElement: any);
-  }
-  if (__DEV__) {
-    return findHostInstanceWithWarning(componentOrElement, 'findDOMNode');
+  if (componentOrElement.nodeType === ELEMENT_NODE) {
+    return componentOrElement
   }
   return findHostInstance(componentOrElement);
 }
@@ -289,22 +266,7 @@ export function render(
   container: Container,
   callback: ?Function,
 ) {
-  invariant(
-    isValidContainer(container),
-    'Target container is not a DOM element.',
-  );
-  if (__DEV__) {
-    const isModernRoot =
-      isContainerMarkedAsRoot(container) &&
-      container._reactRootContainer === undefined;
-    if (isModernRoot) {
-      console.error(
-        'You are calling ReactDOM.render() on a container that was previously ' +
-          'passed to ReactDOM.createRoot(). This is not supported. ' +
-          'Did you mean to call root.render(element)?',
-      );
-    }
-  }
+ 
   return legacyRenderSubtreeIntoContainer(
     null,
     element,
