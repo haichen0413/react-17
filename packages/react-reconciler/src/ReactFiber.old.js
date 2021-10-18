@@ -94,21 +94,7 @@ export type {Fiber};
 
 let hasBadMapPolyfill;
 
-if (__DEV__) {
-  hasBadMapPolyfill = false;
-  try {
-    const nonExtensibleObject = Object.preventExtensions({});
-    /* eslint-disable no-new */
-    new Map([[nonExtensibleObject, null]]);
-    new Set([nonExtensibleObject]);
-    /* eslint-enable no-new */
-  } catch (e) {
-    // TODO: Consider warning about bad polyfills
-    hasBadMapPolyfill = true;
-  }
-}
-
-let debugCounter = 1;
+const debugCounter = 1;
 
 function FiberNode(
   tag: WorkTag,
@@ -180,17 +166,6 @@ function FiberNode(
     this.treeBaseDuration = 0;
   }
 
-  if (__DEV__) {
-    // This isn't directly used but is handy for debugging internals:
-    this._debugID = debugCounter++;
-    this._debugSource = null;
-    this._debugOwner = null;
-    this._debugNeedsRemount = false;
-    this._debugHookTypes = null;
-    if (!hasBadMapPolyfill && typeof Object.preventExtensions === 'function') {
-      Object.preventExtensions(this);
-    }
-  }
 }
 
 // This is a constructor function, rather than a POJO constructor, still
@@ -263,13 +238,6 @@ export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
     workInProgress.type = current.type;
     workInProgress.stateNode = current.stateNode;
 
-    if (__DEV__) {
-      // DEV-only fields
-      workInProgress._debugID = current._debugID;
-      workInProgress._debugSource = current._debugSource;
-      workInProgress._debugOwner = current._debugOwner;
-      workInProgress._debugHookTypes = current._debugHookTypes;
-    }
 
     workInProgress.alternate = current;
     current.alternate = workInProgress;
@@ -331,24 +299,7 @@ export function createWorkInProgress(current: Fiber, pendingProps: any): Fiber {
     workInProgress.treeBaseDuration = current.treeBaseDuration;
   }
 
-  if (__DEV__) {
-    workInProgress._debugNeedsRemount = current._debugNeedsRemount;
-    switch (workInProgress.tag) {
-      case IndeterminateComponent:
-      case FunctionComponent:
-      case SimpleMemoComponent:
-        workInProgress.type = resolveFunctionForHotReloading(current.type);
-        break;
-      case ClassComponent:
-        workInProgress.type = resolveClassForHotReloading(current.type);
-        break;
-      case ForwardRef:
-        workInProgress.type = resolveForwardRefForHotReloading(current.type);
-        break;
-      default:
-        break;
-    }
-  }
+
 
   return workInProgress;
 }
@@ -507,9 +458,6 @@ export function createFiberFromTypeAndProps(
               break getTag;
             case REACT_FORWARD_REF_TYPE:
               fiberTag = ForwardRef;
-              if (__DEV__) {
-                resolvedType = resolveForwardRefForHotReloading(resolvedType);
-              }
               break getTag;
             case REACT_MEMO_TYPE:
               fiberTag = MemoComponent;
@@ -531,32 +479,8 @@ export function createFiberFromTypeAndProps(
               break;
           }
         }
-        let info = '';
-        if (__DEV__) {
-          if (
-            type === undefined ||
-            (typeof type === 'object' &&
-              type !== null &&
-              Object.keys(type).length === 0)
-          ) {
-            info +=
-              ' You likely forgot to export your component from the file ' +
-              "it's defined in, or you might have mixed up default and " +
-              'named imports.';
-          }
-          const ownerName = owner ? getComponentName(owner.type) : null;
-          if (ownerName) {
-            info += '\n\nCheck the render method of `' + ownerName + '`.';
-          }
-        }
-        invariant(
-          false,
-          'Element type is invalid: expected a string (for built-in ' +
-            'components) or a class/function (for composite components) ' +
-            'but got: %s.%s',
-          type == null ? type : typeof type,
-          info,
-        );
+        const info = '';
+
       }
     }
   }
@@ -587,10 +511,7 @@ export function createFiberFromElement(
     mode,
     lanes,
   );
-  if (__DEV__) {
-    fiber._debugSource = element._source;
-    fiber._debugOwner = element._owner;
-  }
+  
   return fiber;
 }
 
@@ -639,11 +560,6 @@ function createFiberFromProfiler(
   lanes: Lanes,
   key: null | string,
 ): Fiber {
-  if (__DEV__) {
-    if (typeof pendingProps.id !== 'string') {
-      console.error('Profiler must specify an "id" as a prop');
-    }
-  }
 
   const fiber = createFiber(Profiler, pendingProps, key, mode | ProfileMode);
   // TODO: The Profiler fiber shouldn't have a type. It has a tag.
@@ -686,12 +602,7 @@ export function createFiberFromSuspenseList(
   key: null | string,
 ) {
   const fiber = createFiber(SuspenseListComponent, pendingProps, key, mode);
-  if (__DEV__) {
-    // TODO: The SuspenseListComponent fiber shouldn't have a type. It has a tag.
-    // This needs to be fixed in getComponentName so that it relies on the tag
-    // instead.
-    fiber.type = REACT_SUSPENSE_LIST_TYPE;
-  }
+
   fiber.elementType = REACT_SUSPENSE_LIST_TYPE;
   fiber.lanes = lanes;
   return fiber;
@@ -707,9 +618,7 @@ export function createFiberFromOffscreen(
   // TODO: The OffscreenComponent fiber shouldn't have a type. It has a tag.
   // This needs to be fixed in getComponentName so that it relies on the tag
   // instead.
-  if (__DEV__) {
-    fiber.type = REACT_OFFSCREEN_TYPE;
-  }
+ 
   fiber.elementType = REACT_OFFSCREEN_TYPE;
   fiber.lanes = lanes;
   return fiber;
@@ -725,9 +634,7 @@ export function createFiberFromLegacyHidden(
   // TODO: The LegacyHidden fiber shouldn't have a type. It has a tag.
   // This needs to be fixed in getComponentName so that it relies on the tag
   // instead.
-  if (__DEV__) {
-    fiber.type = REACT_LEGACY_HIDDEN_TYPE;
-  }
+ 
   fiber.elementType = REACT_LEGACY_HIDDEN_TYPE;
   fiber.lanes = lanes;
   return fiber;

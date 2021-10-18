@@ -53,49 +53,8 @@ let didWarnAboutGenerators;
 let didWarnAboutStringRefs;
 let ownerHasKeyUseWarning;
 let ownerHasFunctionTypeWarning;
-let warnForMissingKey = (child: mixed, returnFiber: Fiber) => {};
+const warnForMissingKey = (child: mixed, returnFiber: Fiber) => {};
 
-if (__DEV__) {
-  didWarnAboutMaps = false;
-  didWarnAboutGenerators = false;
-  didWarnAboutStringRefs = {};
-
-  /**
-   * Warn if there's no key explicitly set on dynamic arrays of children or
-   * object keys are not valid. This allows us to keep track of children between
-   * updates.
-   */
-  ownerHasKeyUseWarning = {};
-  ownerHasFunctionTypeWarning = {};
-
-  warnForMissingKey = (child: mixed, returnFiber: Fiber) => {
-    if (child === null || typeof child !== 'object') {
-      return;
-    }
-    if (!child._store || child._store.validated || child.key != null) {
-      return;
-    }
-    invariant(
-      typeof child._store === 'object',
-      'React Component in warnForMissingKey should have a _store. ' +
-        'This error is likely caused by a bug in React. Please file an issue.',
-    );
-    child._store.validated = true;
-
-    const componentName = getComponentName(returnFiber.type) || 'Component';
-
-    if (ownerHasKeyUseWarning[componentName]) {
-      return;
-    }
-    ownerHasKeyUseWarning[componentName] = true;
-
-    console.error(
-      'Each child in a list should have a unique ' +
-        '"key" prop. See https://reactjs.org/link/warning-keys for ' +
-        'more information.',
-    );
-  };
-}
 
 const isArray = Array.isArray;
 
@@ -110,47 +69,6 @@ function coerceRef(
     typeof mixedRef !== 'function' &&
     typeof mixedRef !== 'object'
   ) {
-    if (__DEV__) {
-      // TODO: Clean this up once we turn on the string ref warning for
-      // everyone, because the strict mode case will no longer be relevant
-      if (
-        (returnFiber.mode & StrictMode || warnAboutStringRefs) &&
-        // We warn in ReactElement.js if owner and self are equal for string refs
-        // because these cannot be automatically converted to an arrow function
-        // using a codemod. Therefore, we don't have to warn about string refs again.
-        !(
-          element._owner &&
-          element._self &&
-          element._owner.stateNode !== element._self
-        )
-      ) {
-        const componentName = getComponentName(returnFiber.type) || 'Component';
-        if (!didWarnAboutStringRefs[componentName]) {
-          if (warnAboutStringRefs) {
-            console.error(
-              'Component "%s" contains the string ref "%s". Support for string refs ' +
-                'will be removed in a future major release. We recommend using ' +
-                'useRef() or createRef() instead. ' +
-                'Learn more about using refs safely here: ' +
-                'https://reactjs.org/link/strict-mode-string-ref',
-              componentName,
-              mixedRef,
-            );
-          } else {
-            console.error(
-              'A string ref, "%s", has been found within a strict mode tree. ' +
-                'String refs are a source of potential bugs and should be avoided. ' +
-                'We recommend using useRef() or createRef() instead. ' +
-                'Learn more about using refs safely here: ' +
-                'https://reactjs.org/link/strict-mode-string-ref',
-              mixedRef,
-            );
-          }
-          didWarnAboutStringRefs[componentName] = true;
-        }
-      }
-    }
-
     if (element._owner) {
       const owner: ?Fiber = (element._owner: any);
       let inst;
@@ -165,12 +83,7 @@ function coerceRef(
         );
         inst = ownerFiber.stateNode;
       }
-      invariant(
-        inst,
-        'Missing owner for string ref %s. This error is likely caused by a ' +
-          'bug in React. Please file an issue.',
-        mixedRef,
-      );
+
       const stringRef = '' + mixedRef;
       // Check if previous string ref matches new string ref
       if (
@@ -196,20 +109,6 @@ function coerceRef(
       ref._stringRef = stringRef;
       return ref;
     } else {
-      invariant(
-        typeof mixedRef === 'string',
-        'Expected ref to be a function, a string, an object returned by React.createRef(), or null.',
-      );
-      invariant(
-        element._owner,
-        'Element ref was specified as a string (%s) but no owner was set. This could happen for one of' +
-          ' the following reasons:\n' +
-          '1. You may be adding a ref to a function component\n' +
-          "2. You may be adding a ref to a component that was not created inside a component's render method\n" +
-          '3. You have multiple copies of React loaded\n' +
-          'See https://reactjs.org/link/refs-must-have-owner for more information.',
-        mixedRef,
-      );
     }
   }
   return mixedRef;
@@ -437,10 +336,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         const existing = useFiber(current, element.props);
         existing.ref = coerceRef(returnFiber, current, element);
         existing.return = returnFiber;
-        if (__DEV__) {
-          existing._debugSource = element._source;
-          existing._debugOwner = element._owner;
-        }
+
         return existing;
       }
     }
@@ -562,12 +458,6 @@ function ChildReconciler(shouldTrackSideEffects) {
       throwOnInvalidObjectType(returnFiber, newChild);
     }
 
-    if (__DEV__) {
-      if (typeof newChild === 'function') {
-        warnOnFunctionType(returnFiber);
-      }
-    }
-
     return null;
   }
 
@@ -627,12 +517,6 @@ function ChildReconciler(shouldTrackSideEffects) {
       throwOnInvalidObjectType(returnFiber, newChild);
     }
 
-    if (__DEV__) {
-      if (typeof newChild === 'function') {
-        warnOnFunctionType(returnFiber);
-      }
-    }
-
     return null;
   }
 
@@ -688,11 +572,6 @@ function ChildReconciler(shouldTrackSideEffects) {
       throwOnInvalidObjectType(returnFiber, newChild);
     }
 
-    if (__DEV__) {
-      if (typeof newChild === 'function') {
-        warnOnFunctionType(returnFiber);
-      }
-    }
 
     return null;
   }
@@ -920,52 +799,8 @@ function ChildReconciler(shouldTrackSideEffects) {
         'React. Please file an issue.',
     );
 
-    if (__DEV__) {
-      // We don't support rendering Generators because it's a mutation.
-      // See https://github.com/facebook/react/issues/12995
-      if (
-        typeof Symbol === 'function' &&
-        // $FlowFixMe Flow doesn't know about toStringTag
-        newChildrenIterable[Symbol.toStringTag] === 'Generator'
-      ) {
-        if (!didWarnAboutGenerators) {
-          console.error(
-            'Using Generators as children is unsupported and will likely yield ' +
-              'unexpected results because enumerating a generator mutates it. ' +
-              'You may convert it to an array with `Array.from()` or the ' +
-              '`[...spread]` operator before rendering. Keep in mind ' +
-              'you might need to polyfill these features for older browsers.',
-          );
-        }
-        didWarnAboutGenerators = true;
-      }
-
-      // Warn about using Maps as children
-      if ((newChildrenIterable: any).entries === iteratorFn) {
-        if (!didWarnAboutMaps) {
-          console.error(
-            'Using Maps as children is not supported. ' +
-              'Use an array of keyed ReactElements instead.',
-          );
-        }
-        didWarnAboutMaps = true;
-      }
-
-      // First, validate keys.
-      // We'll get a different iterator later for the main pass.
-      const newChildren = iteratorFn.call(newChildrenIterable);
-      if (newChildren) {
-        let knownKeys = null;
-        let step = newChildren.next();
-        for (; !step.done; step = newChildren.next()) {
-          const child = step.value;
-          knownKeys = warnOnInvalidKey(child, knownKeys, returnFiber);
-        }
-      }
-    }
 
     const newChildren = iteratorFn.call(newChildrenIterable);
-    invariant(newChildren != null, 'An iterable object provided no iterator.');
 
     let resultingFirstChild: Fiber | null = null;
     let previousNewFiber: Fiber | null = null;
@@ -1323,11 +1158,6 @@ function ChildReconciler(shouldTrackSideEffects) {
       throwOnInvalidObjectType(returnFiber, newChild);
     }
 
-    if (__DEV__) {
-      if (typeof newChild === 'function') {
-        warnOnFunctionType(returnFiber);
-      }
-    }
     if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
       // If the new child is undefined, and the return fiber is a composite
       // component, throw an error. If Fiber return types are disabled,
