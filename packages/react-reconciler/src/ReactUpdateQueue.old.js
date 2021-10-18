@@ -146,16 +146,9 @@ let hasForceUpdate = false;
 let didWarnUpdateInsideUpdate;
 let currentlyProcessingQueue;
 export let resetCurrentlyProcessingQueue;
-if (__DEV__) {
-  didWarnUpdateInsideUpdate = false;
-  currentlyProcessingQueue = null;
-  resetCurrentlyProcessingQueue = () => {
-    currentlyProcessingQueue = null;
-  };
-}
 
 export function initializeUpdateQueue<State>(fiber: Fiber): void {
-  const queue: UpdateQueue<State> = {
+  const queue = {
     baseState: fiber.memoizedState,
     firstBaseUpdate: null,
     lastBaseUpdate: null,
@@ -172,10 +165,10 @@ export function cloneUpdateQueue<State>(
   workInProgress: Fiber,
 ): void {
   // Clone the update queue from current. Unless it's already a clone.
-  const queue: UpdateQueue<State> = (workInProgress.updateQueue: any);
+  const queue = workInProgress.updateQueue
   const currentQueue: UpdateQueue<State> = (current.updateQueue: any);
   if (queue === currentQueue) {
-    const clone: UpdateQueue<State> = {
+    const clone = {
       baseState: currentQueue.baseState,
       firstBaseUpdate: currentQueue.firstBaseUpdate,
       lastBaseUpdate: currentQueue.lastBaseUpdate,
@@ -187,7 +180,7 @@ export function cloneUpdateQueue<State>(
 }
 
 export function createUpdate(eventTime: number, lane: Lane): Update<*> {
-  const update: Update<*> = {
+  const update = {
     eventTime, //  
     lane,
 
@@ -207,7 +200,7 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
     return;
   }
 
-  const sharedQueue: SharedQueue<State> = (updateQueue: any).shared;
+  const sharedQueue = updateQueue.shared;
   const pending = sharedQueue.pending;
   if (pending === null) {
     // This is the first update. Create a circular list.
@@ -218,20 +211,6 @@ export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   }
   sharedQueue.pending = update;
 
-  if (__DEV__) {
-    if (
-      currentlyProcessingQueue === sharedQueue &&
-      !didWarnUpdateInsideUpdate
-    ) {
-      console.error(
-        'An update (setState, replaceState, or forceUpdate) was scheduled ' +
-          'from inside an update function. Update functions should be pure, ' +
-          'with zero side-effects. Consider using componentDidUpdate or a ' +
-          'callback.',
-      );
-      didWarnUpdateInsideUpdate = true;
-    }
-  }
 }
 
 export function enqueueCapturedUpdate<State>(
@@ -326,24 +305,7 @@ function getStateFromUpdate<State>(
       const payload = update.payload;
       if (typeof payload === 'function') {
         // Updater function
-        if (__DEV__) {
-          enterDisallowedContextReadInDEV();
-        }
         const nextState = payload.call(instance, prevState, nextProps);
-        if (__DEV__) {
-          if (
-            debugRenderPhaseSideEffectsForStrictMode &&
-            workInProgress.mode & StrictMode
-          ) {
-            disableLogs();
-            try {
-              payload.call(instance, prevState, nextProps);
-            } finally {
-              reenableLogs();
-            }
-          }
-          exitDisallowedContextReadInDEV();
-        }
         return nextState;
       }
       // State object
@@ -359,24 +321,7 @@ function getStateFromUpdate<State>(
       let partialState;
       if (typeof payload === 'function') {
         // Updater function
-        if (__DEV__) {
-          enterDisallowedContextReadInDEV();
-        }
         partialState = payload.call(instance, prevState, nextProps);
-        if (__DEV__) {
-          if (
-            debugRenderPhaseSideEffectsForStrictMode &&
-            workInProgress.mode & StrictMode
-          ) {
-            disableLogs();
-            try {
-              payload.call(instance, prevState, nextProps);
-            } finally {
-              reenableLogs();
-            }
-          }
-          exitDisallowedContextReadInDEV();
-        }
       } else {
         // Partial state object
         partialState = payload;
@@ -407,10 +352,6 @@ export function processUpdateQueue<State>(
 
   hasForceUpdate = false;
 
-  if (__DEV__) {
-    currentlyProcessingQueue = queue.shared;
-  }
-
   let firstBaseUpdate = queue.firstBaseUpdate;
   let lastBaseUpdate = queue.lastBaseUpdate;
 
@@ -440,7 +381,7 @@ export function processUpdateQueue<State>(
     const current = workInProgress.alternate;
     if (current !== null) {
       // This is always non-null on a ClassComponent or HostRoot
-      const currentQueue: UpdateQueue<State> = (current.updateQueue: any);
+      const currentQueue = current.updateQueue
       const currentLastBaseUpdate = currentQueue.lastBaseUpdate;
       if (currentLastBaseUpdate !== lastBaseUpdate) {
         if (currentLastBaseUpdate === null) {
@@ -571,18 +512,9 @@ export function processUpdateQueue<State>(
     workInProgress.memoizedState = newState;
   }
 
-  if (__DEV__) {
-    currentlyProcessingQueue = null;
-  }
 }
 
 function callCallback(callback, context) {
-  invariant(
-    typeof callback === 'function',
-    'Invalid argument passed as callback. Expected a function. Instead ' +
-      'received: %s',
-    callback,
-  );
   callback.call(context);
 }
 

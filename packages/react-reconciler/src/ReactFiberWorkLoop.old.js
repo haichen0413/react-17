@@ -520,7 +520,6 @@ export function scheduleUpdateOnFiber(
   eventTime: number,
 ) {
   checkForNestedUpdates();
-  warnAboutRenderPhaseUpdatesInDEV(fiber);
 
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
   if (root === null) {
@@ -2758,81 +2757,11 @@ function warnAboutUpdateOnUnmountedFiberInDEV(fiber) {
 }
 
 let beginWork;
-if (__DEV__ && replayFailedUnitOfWorkWithInvokeGuardedCallback) {
-  const dummyFiber = null;
-  beginWork = (current, unitOfWork, lanes) => {
-    // If a component throws an error, we replay it again in a synchronously
-    // dispatched event, so that the debugger will treat it as an uncaught
-    // error See ReactErrorUtils for more information.
-
-    // Before entering the begin phase, copy the work-in-progress onto a dummy
-    // fiber. If beginWork throws, we'll use this to reset the state.
-    const originalWorkInProgressCopy = assignFiberPropertiesInDEV(
-      dummyFiber,
-      unitOfWork,
-    );
-    try {
-      return originalBeginWork(current, unitOfWork, lanes);
-    } catch (originalError) {
-      if (
-        originalError !== null &&
-        typeof originalError === 'object' &&
-        typeof originalError.then === 'function'
-      ) {
-        // Don't replay promises. Treat everything else like an error.
-        throw originalError;
-      }
-
-      // Keep this code in sync with handleError; any changes here must have
-      // corresponding changes there.
-      resetContextDependencies();
-      resetHooksAfterThrow();
-      // Don't reset current debug fiber, since we're about to work on the
-      // same fiber again.
-
-      // Unwind the failed stack frame
-      unwindInterruptedWork(unitOfWork);
-
-      // Restore the original properties of the fiber.
-      assignFiberPropertiesInDEV(unitOfWork, originalWorkInProgressCopy);
-
-      if (enableProfilerTimer && unitOfWork.mode & ProfileMode) {
-        // Reset the profiler timer.
-        startProfilerTimer(unitOfWork);
-      }
-
-      // Run beginWork again.
-      invokeGuardedCallback(
-        null,
-        originalBeginWork,
-        null,
-        current,
-        unitOfWork,
-        lanes,
-      );
-
-      if (hasCaughtError()) {
-        const replayError = clearCaughtError();
-        // `invokeGuardedCallback` sometimes sets an expando `_suppressLogging`.
-        // Rethrow this error instead of the original one.
-        throw replayError;
-      } else {
-        // This branch is reachable if the render phase is impure.
-        throw originalError;
-      }
-    }
-  };
-} else {
-  beginWork = originalBeginWork;
-}
+beginWork = originalBeginWork;
 
 const didWarnAboutUpdateInRender = false;
 let didWarnAboutUpdateInRenderForAnotherComponent;
 
-
-function warnAboutRenderPhaseUpdatesInDEV(fiber) {
-  
-}
 
 // a 'shared' variable that changes when act() opens/closes in tests.
 export const IsThisRendererActing = {current: (false: boolean)};
@@ -2867,7 +2796,7 @@ function computeThreadID(root: FiberRoot, lane: Lane | Lanes) {
   // NOTE: Intentionally unsound cast. All that matters is that it's a number
   // and it represents a batch of work. Could make a helper function instead,
   // but meh this is fine for now.
-  return (lane: any) * 1000 + root.interactionThreadID;
+  return lane * 1000 + root.interactionThreadID;
 }
 
 export function markSpawnedWork(lane: Lane | Lanes) {

@@ -21,14 +21,8 @@ import {createCursor, push, pop} from './ReactFiberStack.old';
 
 let warnedAboutMissingGetChildContext;
 
-if (__DEV__) {
-  warnedAboutMissingGetChildContext = {};
-}
-
 export const emptyContextObject = {};
-if (__DEV__) {
-  Object.freeze(emptyContextObject);
-}
+
 
 // A cursor to the current merged context object on the stack.
 const contextStackCursor: StackCursor<Object> = createCursor(
@@ -103,11 +97,6 @@ function getMaskedContext(
       context[key] = unmaskedContext[key];
     }
 
-    if (__DEV__) {
-      const name = getComponentName(type) || 'Unknown';
-      checkPropTypes(contextTypes, context, 'context', name);
-    }
-
     // Cache unmasked context so we can avoid recreating masked context unless necessary.
     // Context is created before the class component is instantiated so check for instance.
     if (instance) {
@@ -161,12 +150,7 @@ function pushTopLevelContextObject(
   if (disableLegacyContext) {
     return;
   } else {
-    invariant(
-      contextStackCursor.current === emptyContextObject,
-      'Unexpected context found on stack. ' +
-        'This error is likely caused by a bug in React. Please file an issue.',
-    );
-
+ 
     push(contextStackCursor, context, fiber);
     push(didPerformWorkStackCursor, didChange, fiber);
   }
@@ -186,20 +170,7 @@ function processChildContext(
     // TODO (bvaughn) Replace this behavior with an invariant() in the future.
     // It has only been added in Fiber to match the (unintentional) behavior in Stack.
     if (typeof instance.getChildContext !== 'function') {
-      if (__DEV__) {
-        const componentName = getComponentName(type) || 'Unknown';
-
-        if (!warnedAboutMissingGetChildContext[componentName]) {
-          warnedAboutMissingGetChildContext[componentName] = true;
-          console.error(
-            '%s.childContextTypes is specified but there is no getChildContext() method ' +
-              'on the instance. You can either define getChildContext() on %s or remove ' +
-              'childContextTypes from it.',
-            componentName,
-            componentName,
-          );
-        }
-      }
+      
       return parentContext;
     }
 
@@ -212,11 +183,7 @@ function processChildContext(
         contextKey,
       );
     }
-    if (__DEV__) {
-      const name = getComponentName(type) || 'Unknown';
-      checkPropTypes(childContextTypes, childContext, 'child context', name);
-    }
-
+ 
     return {...parentContext, ...childContext};
   }
 }

@@ -65,19 +65,6 @@ function FiberRootNode(containerInfo, tag, hydrate) {
     this.hydrationCallbacks = null;
   }
 
-  if (__DEV__) {
-    switch (tag) {
-      case BlockingRoot:
-        this._debugRootType = 'createBlockingRoot()';
-        break;
-      case ConcurrentRoot:
-        this._debugRootType = 'createRoot()';
-        break;
-      case LegacyRoot:
-        this._debugRootType = 'createLegacyRoot()';
-        break;
-    }
-  }
 }
 
 export function createFiberRoot(
@@ -86,7 +73,7 @@ export function createFiberRoot(
   hydrate: boolean,
   hydrationCallbacks: null | SuspenseHydrationCallbacks,
 ): FiberRoot {
-  const root: FiberRoot = (new FiberRootNode(containerInfo, tag, hydrate): any);
+  const root = new FiberRootNode(containerInfo, tag, hydrate)
   if (enableSuspenseCallback) {
     root.hydrationCallbacks = hydrationCallbacks;
   }
