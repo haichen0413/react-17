@@ -135,7 +135,7 @@ export function createBlockingRoot(
 export function createLegacyRoot(
   container: Container,
   options?: RootOptions,
-): RootType {
+) {
   return new ReactDOMBlockingRoot(container, LegacyRoot, options);
 }
 

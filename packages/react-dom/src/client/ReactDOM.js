@@ -43,7 +43,6 @@ import {canUseDOM} from 'shared/ExecutionEnvironment';
 import ReactVersion from 'shared/ReactVersion';
 import invariant from 'shared/invariant';
 import {
-  warnUnstableRenderSubtreeIntoContainer,
   enableNewReconciler,
 } from 'shared/ReactFeatureFlags';
 
@@ -78,26 +77,6 @@ setGetCurrentUpdatePriority(getCurrentUpdateLanePriority);
 setAttemptHydrationAtPriority(runWithPriority);
 
 let didWarnAboutUnstableCreatePortal = false;
-let didWarnAboutUnstableRenderSubtreeIntoContainer = false;
-
-if (__DEV__) {
-  if (
-    typeof Map !== 'function' ||
-    // $FlowIssue Flow incorrectly thinks Map has no prototype
-    Map.prototype == null ||
-    typeof Map.prototype.forEach !== 'function' ||
-    typeof Set !== 'function' ||
-    // $FlowIssue Flow incorrectly thinks Set has no prototype
-    Set.prototype == null ||
-    typeof Set.prototype.clear !== 'function' ||
-    typeof Set.prototype.forEach !== 'function'
-  ) {
-    console.error(
-      'React depends on Map and Set built-in types. Make sure that you load a ' +
-        'polyfill in older browsers. https://reactjs.org/link/react-polyfills',
-    );
-  }
-}
 
 setRestoreImplementation(restoreControlledState);
 setBatchingImplementation(
@@ -111,11 +90,7 @@ function createPortal(
   children: ReactNodeList,
   container: Container,
   key: ?string = null,
-): React$Portal {
-  invariant(
-    isValidContainer(container),
-    'Target container is not a DOM element.',
-  );
+) {
   // TODO: pass ReactDOM portal implementation as third argument
   // $FlowFixMe The Flow type is opaque but there's no way to actually create it.
   return createPortalImpl(children, container, null, key);
@@ -133,19 +108,6 @@ function renderSubtreeIntoContainer(
   containerNode: Container,
   callback: ?Function,
 ) {
-  if (__DEV__) {
-    if (
-      warnUnstableRenderSubtreeIntoContainer &&
-      !didWarnAboutUnstableRenderSubtreeIntoContainer
-    ) {
-      didWarnAboutUnstableRenderSubtreeIntoContainer = true;
-      console.warn(
-        'ReactDOM.unstable_renderSubtreeIntoContainer() is deprecated ' +
-          'and will be removed in a future major release. Consider using ' +
-          'React Portals instead.',
-      );
-    }
-  }
   return unstable_renderSubtreeIntoContainer(
     parentComponent,
     element,
