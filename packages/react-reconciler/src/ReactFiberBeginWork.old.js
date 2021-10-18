@@ -397,17 +397,14 @@ function updateMemoComponent(
       Component.defaultProps === undefined
     ) {
       let resolvedType = type;
-      if (__DEV__) {
-        resolvedType = resolveFunctionForHotReloading(type);
+      resolvedType = resolveFunctionForHotReloading(type);
       }
       // If this is a plain function component without default props,
       // and with only the default shallow comparison, we upgrade it
       // to a SimpleMemoComponent to allow fast path updates.
       workInProgress.tag = SimpleMemoComponent;
       workInProgress.type = resolvedType;
-      if (__DEV__) {
-        validateFunctionComponentInDev(workInProgress, type);
-      }
+      
       return updateSimpleMemoComponent(
         current,
         workInProgress,
@@ -417,19 +414,7 @@ function updateMemoComponent(
         renderLanes,
       );
     }
-    if (__DEV__) {
-      const innerPropTypes = type.propTypes;
-      if (innerPropTypes) {
-        // Inner memo component props aren't currently validated in createElement.
-        // We could move it there, but we'd still need this for lazy code path.
-        checkPropTypes(
-          innerPropTypes,
-          nextProps, // Resolved props
-          'prop',
-          getComponentName(type),
-        );
-      }
-    }
+    
     const child = createFiberFromTypeAndProps(
       Component.type,
       null,
@@ -443,20 +428,7 @@ function updateMemoComponent(
     workInProgress.child = child;
     return child;
   }
-  if (__DEV__) {
-    const type = Component.type;
-    const innerPropTypes = type.propTypes;
-    if (innerPropTypes) {
-      // Inner memo component props aren't currently validated in createElement.
-      // We could move it there, but we'd still need this for lazy code path.
-      checkPropTypes(
-        innerPropTypes,
-        nextProps, // Resolved props
-        'prop',
-        getComponentName(type),
-      );
-    }
-  }
+  
   const currentChild = ((current.child: any): Fiber); // This is always exactly one child
   if (!includesSomeLane(updateLanes, renderLanes)) {
     // This will be the props with resolved defaultProps,
@@ -490,36 +462,7 @@ function updateSimpleMemoComponent(
   // hasn't yet mounted. This happens when the inner render suspends.
   // We'll need to figure out if this is fine or can cause issues.
 
-  if (__DEV__) {
-    if (workInProgress.type !== workInProgress.elementType) {
-      // Lazy component props can't be validated in createElement
-      // because they're only guaranteed to be resolved here.
-      let outerMemoType = workInProgress.elementType;
-      if (outerMemoType.$$typeof === REACT_LAZY_TYPE) {
-        // We warn when you define propTypes on lazy()
-        // so let's just skip over it to find memo() outer wrapper.
-        // Inner props for memo are validated later.
-        const lazyComponent: LazyComponentType<any, any> = outerMemoType;
-        const payload = lazyComponent._payload;
-        const init = lazyComponent._init;
-        try {
-          outerMemoType = init(payload);
-        } catch (x) {
-          outerMemoType = null;
-        }
-        // Inner propTypes will be validated in the function component path.
-        const outerPropTypes = outerMemoType && (outerMemoType: any).propTypes;
-        if (outerPropTypes) {
-          checkPropTypes(
-            outerPropTypes,
-            nextProps, // Resolved (SimpleMemoComponent has no defaultProps)
-            'prop',
-            getComponentName(outerMemoType),
-          );
-        }
-      }
-    }
-  }
+  
   if (current !== null) {
     const prevProps = current.memoizedProps;
     if (
@@ -3028,24 +2971,6 @@ function beginWork(
 ): Fiber | null {
   const updateLanes = workInProgress.lanes;
 
-  if (__DEV__) {
-    if (workInProgress._debugNeedsRemount && current !== null) {
-      // This will restart the begin phase with a new fiber.
-      return remountFiber(
-        current,
-        workInProgress,
-        createFiberFromTypeAndProps(
-          workInProgress.type,
-          workInProgress.key,
-          workInProgress.pendingProps,
-          workInProgress._debugOwner || null,
-          workInProgress.mode,
-          workInProgress.lanes,
-        ),
-      );
-    }
-  }
-
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
@@ -3054,7 +2979,7 @@ function beginWork(
       oldProps !== newProps ||
       hasLegacyContextChanged() ||
       // Force a re-render if the implementation changed due to hot reload:
-      (__DEV__ ? workInProgress.type !== current.type : false)
+      false
     ) {
       // If props or context changed, mark the fiber as having performed work.
       // This may be unset if the props are determined to be equal later (memo).
