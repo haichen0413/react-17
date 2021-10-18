@@ -45,7 +45,7 @@ function escape(key: string): string {
  * pattern.
  */
 
-let didWarnAboutMaps = false;
+const didWarnAboutMaps = false;
 
 const userProvidedKeyEscapeRegex = /\/+/g;
 function escapeUserProvidedKey(text: string): string {
@@ -95,7 +95,7 @@ function mapIntoArray(
         invokeCallback = true;
         break;
       case 'object':
-        switch ((children: any).$$typeof) {
+        switch (children) {
           case REACT_ELEMENT_TYPE:
           case REACT_PORTAL_TYPE:
             invokeCallback = true;
@@ -157,22 +157,7 @@ function mapIntoArray(
   } else {
     const iteratorFn = getIteratorFn(children);
     if (typeof iteratorFn === 'function') {
-      const iterableChildren: Iterable<React$Node> & {
-        entries: any,
-      } = (children: any);
-
-      if (__DEV__) {
-        // Warn about using Maps as children
-        if (iteratorFn === iterableChildren.entries) {
-          if (!didWarnAboutMaps) {
-            console.warn(
-              'Using Maps as children is not supported. ' +
-                'Use an array of keyed ReactElements instead.',
-            );
-          }
-          didWarnAboutMaps = true;
-        }
-      }
+      const iterableChildren = children
 
       const iterator = iteratorFn.call(iterableChildren);
       let step;
@@ -189,7 +174,7 @@ function mapIntoArray(
         );
       }
     } else if (type === 'object') {
-      const childrenString = '' + (children: any);
+      const childrenString = '' + children
       invariant(
         false,
         'Objects are not valid as a React child (found: %s). ' +
@@ -245,7 +230,7 @@ function mapChildren(
  * @param {?*} children Children tree container.
  * @return {number} The number of children.
  */
-function countChildren(children: ?ReactNodeList): number {
+function countChildren(children) {
   let n = 0;
   mapChildren(children, () => {
     n++;

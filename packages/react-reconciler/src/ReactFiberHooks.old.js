@@ -112,10 +112,7 @@ type UpdateQueue<S, A> = {|
 
 let didWarnAboutMismatchedHooksForComponent;
 let didWarnAboutUseOpaqueIdentifier;
-if (__DEV__) {
-  didWarnAboutUseOpaqueIdentifier = {};
-  didWarnAboutMismatchedHooksForComponent = new Set();
-}
+
 
 export type Hook = {|
   memoizedState: any,

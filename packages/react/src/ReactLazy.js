@@ -48,32 +48,20 @@ export type LazyComponent<T, P> = {
   _init: (payload: P) => T,
 };
 
-function lazyInitializer<T>(payload: Payload<T>): T {
+function lazyInitializer(payload) {
   if (payload._status === Uninitialized) {
     const ctor = payload._result;
     const thenable = ctor();
     // Transition to the next state.
-    const pending: PendingPayload = (payload: any);
+    const pending = payload
     pending._status = Pending;
     pending._result = thenable;
     thenable.then(
       moduleObject => {
         if (payload._status === Pending) {
           const defaultExport = moduleObject.default;
-          if (__DEV__) {
-            if (defaultExport === undefined) {
-              console.error(
-                'lazy: Expected the result of a dynamic import() call. ' +
-                  'Instead received: %s\n\nYour code should look like: \n  ' +
-                  // Break up imports to avoid accidentally parsing them as dependencies.
-                  'const MyComponent = lazy(() => imp' +
-                  "ort('./MyComponent'))",
-                moduleObject,
-              );
-            }
-          }
           // Transition to the next state.
-          const resolved: ResolvedPayload<T> = (payload: any);
+          const resolved = payload
           resolved._status = Resolved;
           resolved._result = defaultExport;
         }
@@ -81,7 +69,7 @@ function lazyInitializer<T>(payload: Payload<T>): T {
       error => {
         if (payload._status === Pending) {
           // Transition to the next state.
-          const rejected: RejectedPayload = (payload: any);
+          const rejected = payload
           rejected._status = Rejected;
           rejected._result = error;
         }
@@ -95,67 +83,20 @@ function lazyInitializer<T>(payload: Payload<T>): T {
   }
 }
 
-export function lazy<T>(
+export function lazy(
   ctor: () => Thenable<{default: T, ...}>,
-): LazyComponent<T, Payload<T>> {
-  const payload: Payload<T> = {
+) {
+  const payload = {
     // We use these fields to store the result.
     _status: -1,
     _result: ctor,
   };
 
-  const lazyType: LazyComponent<T, Payload<T>> = {
+  const lazyType = {
     $$typeof: REACT_LAZY_TYPE,
     _payload: payload,
     _init: lazyInitializer,
   };
-
-  if (__DEV__) {
-    // In production, this would just set it on the object.
-    let defaultProps;
-    let propTypes;
-    // $FlowFixMe
-    Object.defineProperties(lazyType, {
-      defaultProps: {
-        configurable: true,
-        get() {
-          return defaultProps;
-        },
-        set(newDefaultProps) {
-          console.error(
-            'React.lazy(...): It is not supported to assign `defaultProps` to ' +
-              'a lazy component import. Either specify them where the component ' +
-              'is defined, or create a wrapping component around it.',
-          );
-          defaultProps = newDefaultProps;
-          // Match production behavior more closely:
-          // $FlowFixMe
-          Object.defineProperty(lazyType, 'defaultProps', {
-            enumerable: true,
-          });
-        },
-      },
-      propTypes: {
-        configurable: true,
-        get() {
-          return propTypes;
-        },
-        set(newPropTypes) {
-          console.error(
-            'React.lazy(...): It is not supported to assign `propTypes` to ' +
-              'a lazy component import. Either specify them where the component ' +
-              'is defined, or create a wrapping component around it.',
-          );
-          propTypes = newPropTypes;
-          // Match production behavior more closely:
-          // $FlowFixMe
-          Object.defineProperty(lazyType, 'propTypes', {
-            enumerable: true,
-          });
-        },
-      },
-    });
-  }
 
   return lazyType;
 }

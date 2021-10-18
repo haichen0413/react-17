@@ -9,21 +9,16 @@
 
 import type {MutableSource, MutableSourceGetVersionFn} from 'shared/ReactTypes';
 
-export function createMutableSource<Source: $NonMaybeType<mixed>>(
+export function createMutableSource(
   source: Source,
   getVersion: MutableSourceGetVersionFn,
-): MutableSource<Source> {
-  const mutableSource: MutableSource<Source> = {
+) {
+  const mutableSource = {
     _getVersion: getVersion,
     _source: source,
     _workInProgressVersionPrimary: null,
     _workInProgressVersionSecondary: null,
   };
-
-  if (__DEV__) {
-    mutableSource._currentPrimaryRenderer = null;
-    mutableSource._currentSecondaryRenderer = null;
-  }
 
   return mutableSource;
 }
