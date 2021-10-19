@@ -32,7 +32,6 @@ import {
 } from './ReactWorkTags';
 import invariant from 'shared/invariant';
 import {
-  warnAboutStringRefs,
   enableLazyElements,
 } from 'shared/ReactFeatureFlags';
 
@@ -46,13 +45,7 @@ import {
 } from './ReactFiber.old';
 import {emptyRefsObject} from './ReactFiberClassComponent.old';
 import {isCompatibleFamilyForHotReloading} from './ReactFiberHotReloading.old';
-import {StrictMode} from './ReactTypeOfMode';
 
-let didWarnAboutMaps;
-let didWarnAboutGenerators;
-let didWarnAboutStringRefs;
-let ownerHasKeyUseWarning;
-let ownerHasFunctionTypeWarning;
 const warnForMissingKey = (child: mixed, returnFiber: Fiber) => {};
 
 
@@ -70,7 +63,7 @@ function coerceRef(
     typeof mixedRef !== 'object'
   ) {
     if (element._owner) {
-      const owner: ?Fiber = (element._owner: any);
+      const owner = element._owner
       let inst;
       if (owner) {
         const ownerFiber = owner
@@ -185,11 +178,11 @@ function ChildReconciler(shouldTrackSideEffects) {
   function mapRemainingChildren(
     returnFiber: Fiber,
     currentFirstChild: Fiber,
-  ): Map<string | number, Fiber> {
+  ) {
     // Add the remaining children to a temporary map so that we can find them by
     // keys quickly. Implicit (null) keys get added to this set with their index
     // instead.
-    const existingChildren: Map<string | number, Fiber> = new Map();
+    const existingChildren = new Map();
 
     let existingChild = currentFirstChild;
     while (existingChild !== null) {
@@ -369,7 +362,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     returnFiber: Fiber,
     newChild: any,
     lanes: Lanes,
-  ): Fiber | null {
+  ) {
     if (typeof newChild === 'string' || typeof newChild === 'number') {
       // Text nodes don't have keys. If the previous node is implicitly keyed
       // we can continue to replace it without aborting even if it is not a text
@@ -434,7 +427,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     oldFiber: Fiber | null,
     newChild: any,
     lanes: Lanes,
-  ): Fiber | null {
+  ) {
     // Update the fiber if the keys match, otherwise return null.
 
     const key = oldFiber !== null ? oldFiber.key : null;
@@ -583,7 +576,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         case REACT_LAZY_TYPE:
           if (enableLazyElements) {
             const payload = child._payload;
-            const init = (child._init: any);
+            const init = child._init
             warnOnInvalidKey(init(payload), knownKeys, returnFiber);
             break;
           }
@@ -597,12 +590,7 @@ function ChildReconciler(shouldTrackSideEffects) {
   }
 
   // 处理数组diff
-  function reconcileChildrenArray(
-    returnFiber: Fiber,
-    currentFirstChild: Fiber | null,
-    newChildren: Array<*>,
-    lanes: Lanes,
-  ) {
+  function reconcileChildrenArray(returnFiber,currentFirstChild,newChildren,lanes) {
     // This algorithm can't optimize by searching from both ends since we
     // don't have backpointers on fibers. I'm trying to see how far we can get
     // with that model. If it ends up not being worth the tradeoffs, we can
@@ -623,8 +611,8 @@ function ChildReconciler(shouldTrackSideEffects) {
     // uses the same algorithm.
 
 
-    let resultingFirstChild: Fiber | null = null;
-    let previousNewFiber: Fiber | null = null;
+    let resultingFirstChild= null;
+    let previousNewFiber = null;
 
     let oldFiber = currentFirstChild;
     let lastPlacedIndex = 0;
@@ -1120,23 +1108,12 @@ function ChildReconciler(shouldTrackSideEffects) {
       );
     }
 
-    if (isObject) {
-    }
-
     if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
       // If the new child is undefined, and the return fiber is a composite
       // component, throw an error. If Fiber return types are disabled,
       // we already threw above.
       switch (returnFiber.tag) {
-        case ClassComponent: {
-          if (__DEV__) {
-            const instance = returnFiber.stateNode;
-            if (instance.render._isMockFunction) {
-              // We allow auto-mocks to proceed as if they're returning null.
-              break;
-            }
-          }
-        }
+        case ClassComponent:
         // Intentionally fall through to the next case, which handles both
         // functions and classes
         // eslint-disable-next-lined no-fallthrough
@@ -1167,7 +1144,7 @@ export const mountChildFibers = ChildReconciler(false);
 export function cloneChildFibers(
   current: Fiber | null,
   workInProgress: Fiber,
-): void {
+) {
   invariant(
     current === null || workInProgress.child === current.child,
     'Resuming work not yet implemented.',
