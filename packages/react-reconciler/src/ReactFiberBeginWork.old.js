@@ -397,7 +397,7 @@ function updateSimpleMemoComponent(
   nextProps: any,
   updateLanes: Lanes,
   renderLanes: Lanes,
-): null | Fiber {
+) {
   // TODO: current can be non-null here even if the component
   // hasn't yet mounted. This happens when the inner render suspends.
   // We'll need to figure out if this is fine or can cause issues.
@@ -1107,84 +1107,6 @@ function mountIndeterminateComponent(
     workInProgress.tag = FunctionComponent;
     reconcileChildren(null, workInProgress, value, renderLanes);
     return workInProgress.child;
-  }
-}
-
-function validateFunctionComponentInDev(workInProgress: Fiber, Component: any) {
-  if (__DEV__) {
-    if (Component) {
-      if (Component.childContextTypes) {
-        console.error(
-          '%s(...): childContextTypes cannot be defined on a function component.',
-          Component.displayName || Component.name || 'Component',
-        );
-      }
-    }
-    if (workInProgress.ref !== null) {
-      let info = '';
-      const ownerName = getCurrentFiberOwnerNameInDevOrNull();
-      if (ownerName) {
-        info += '\n\nCheck the render method of `' + ownerName + '`.';
-      }
-
-      let warningKey = ownerName || workInProgress._debugID || '';
-      const debugSource = workInProgress._debugSource;
-      if (debugSource) {
-        warningKey = debugSource.fileName + ':' + debugSource.lineNumber;
-      }
-      if (!didWarnAboutFunctionRefs[warningKey]) {
-        didWarnAboutFunctionRefs[warningKey] = true;
-        console.error(
-          'Function components cannot be given refs. ' +
-            'Attempts to access this ref will fail. ' +
-            'Did you mean to use React.forwardRef()?%s',
-          info,
-        );
-      }
-    }
-
-    if (
-      warnAboutDefaultPropsOnFunctionComponents &&
-      Component.defaultProps !== undefined
-    ) {
-      const componentName = getComponentName(Component) || 'Unknown';
-
-      if (!didWarnAboutDefaultPropsOnFunctionComponent[componentName]) {
-        console.error(
-          '%s: Support for defaultProps will be removed from function components ' +
-            'in a future major release. Use JavaScript default parameters instead.',
-          componentName,
-        );
-        didWarnAboutDefaultPropsOnFunctionComponent[componentName] = true;
-      }
-    }
-
-    if (typeof Component.getDerivedStateFromProps === 'function') {
-      const componentName = getComponentName(Component) || 'Unknown';
-
-      if (!didWarnAboutGetDerivedStateOnFunctionComponent[componentName]) {
-        console.error(
-          '%s: Function components do not support getDerivedStateFromProps.',
-          componentName,
-        );
-        didWarnAboutGetDerivedStateOnFunctionComponent[componentName] = true;
-      }
-    }
-
-    if (
-      typeof Component.contextType === 'object' &&
-      Component.contextType !== null
-    ) {
-      const componentName = getComponentName(Component) || 'Unknown';
-
-      if (!didWarnAboutContextTypeOnFunctionComponent[componentName]) {
-        console.error(
-          '%s: Function components do not support contextType.',
-          componentName,
-        );
-        didWarnAboutContextTypeOnFunctionComponent[componentName] = true;
-      }
-    }
   }
 }
 

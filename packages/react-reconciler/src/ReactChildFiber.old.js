@@ -73,7 +73,7 @@ function coerceRef(
       const owner: ?Fiber = (element._owner: any);
       let inst;
       if (owner) {
-        const ownerFiber = ((owner: any): Fiber);
+        const ownerFiber = owner
         invariant(
           ownerFiber.tag === ClassComponent,
           'Function components cannot have string refs. ' +
@@ -112,37 +112,6 @@ function coerceRef(
     }
   }
   return mixedRef;
-}
-
-function throwOnInvalidObjectType(returnFiber: Fiber, newChild: Object) {
-  if (returnFiber.type !== 'textarea') {
-    invariant(
-      false,
-      'Objects are not valid as a React child (found: %s). ' +
-        'If you meant to render a collection of children, use an array ' +
-        'instead.',
-      Object.prototype.toString.call(newChild) === '[object Object]'
-        ? 'object with keys {' + Object.keys(newChild).join(', ') + '}'
-        : newChild,
-    );
-  }
-}
-
-function warnOnFunctionType(returnFiber: Fiber) {
-  if (__DEV__) {
-    const componentName = getComponentName(returnFiber.type) || 'Component';
-
-    if (ownerHasFunctionTypeWarning[componentName]) {
-      return;
-    }
-    ownerHasFunctionTypeWarning[componentName] = true;
-
-    console.error(
-      'Functions are not valid as a React child. This may happen if ' +
-        'you return a Component instead of <Component /> from render. ' +
-        'Or maybe you meant to call this function rather than return it.',
-    );
-  }
 }
 
 function resolveLazy(lazyType) {
@@ -455,7 +424,6 @@ function ChildReconciler(shouldTrackSideEffects) {
         return created;
       }
 
-      throwOnInvalidObjectType(returnFiber, newChild);
     }
 
     return null;
@@ -514,7 +482,6 @@ function ChildReconciler(shouldTrackSideEffects) {
         return updateFragment(returnFiber, oldFiber, newChild, lanes, null);
       }
 
-      throwOnInvalidObjectType(returnFiber, newChild);
     }
 
     return null;
@@ -569,7 +536,6 @@ function ChildReconciler(shouldTrackSideEffects) {
         return updateFragment(returnFiber, matchedFiber, newChild, lanes, null);
       }
 
-      throwOnInvalidObjectType(returnFiber, newChild);
     }
 
 
@@ -636,7 +602,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     currentFirstChild: Fiber | null,
     newChildren: Array<*>,
     lanes: Lanes,
-  ): Fiber | null {
+  ) {
     // This algorithm can't optimize by searching from both ends since we
     // don't have backpointers on fibers. I'm trying to see how far we can get
     // with that model. If it ends up not being worth the tradeoffs, we can
@@ -1155,7 +1121,6 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
 
     if (isObject) {
-      throwOnInvalidObjectType(returnFiber, newChild);
     }
 
     if (typeof newChild === 'undefined' && !isUnkeyedTopLevelFragment) {
