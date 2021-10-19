@@ -7,7 +7,7 @@
  * @flow
  */
 
-let didWarnAboutMessageChannel = false;
+const didWarnAboutMessageChannel = false;
 let enqueueTaskImpl = null;
 
 export default function enqueueTask(task: () => void) {
@@ -25,19 +25,6 @@ export default function enqueueTask(task: () => void) {
       // we can't use regular timers because they may still be faked
       // so we try MessageChannel+postMessage instead
       enqueueTaskImpl = function(callback: () => void) {
-        if (__DEV__) {
-          if (didWarnAboutMessageChannel === false) {
-            didWarnAboutMessageChannel = true;
-            if (typeof MessageChannel === 'undefined') {
-              console.error(
-                'This browser does not have a MessageChannel implementation, ' +
-                  'so enqueuing tasks via await act(async () => ...) will fail. ' +
-                  'Please file an issue at https://github.com/facebook/react/issues ' +
-                  'if you encounter this warning.',
-              );
-            }
-          }
-        }
         const channel = new MessageChannel();
         channel.port1.onmessage = callback;
         channel.port2.postMessage(undefined);

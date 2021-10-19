@@ -209,8 +209,11 @@ function ChildReconciler(shouldTrackSideEffects) {
     newFiber: Fiber,
     lastPlacedIndex: number,
     newIndex: number,
-  ): number {
+  ) {
+    // 当前fiber在真是dom节点的下标
     newFiber.index = newIndex;
+
+    // 如果初次渲染逻辑
     if (!shouldTrackSideEffects) {
       // Noop.
       return lastPlacedIndex;
@@ -611,13 +614,15 @@ function ChildReconciler(shouldTrackSideEffects) {
     // uses the same algorithm.
 
 
-    let resultingFirstChild= null;
+    let resultingFirstChild = null;
     let previousNewFiber = null;
 
     let oldFiber = currentFirstChild;
     let lastPlacedIndex = 0;
     let newIdx = 0;
     let nextOldFiber = null;
+
+    //更新阶段 oldFiber !== null 说明不是初次渲染阶段
     for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
       if (oldFiber.index > newIdx) {
         nextOldFiber = oldFiber;
@@ -649,6 +654,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         }
       }
       lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+      // previousNewFiber === null证明是第一个子元素
       if (previousNewFiber === null) {
         // TODO: Move out of the loop. This only happens for the first run.
         resultingFirstChild = newFiber;
@@ -670,7 +676,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       return resultingFirstChild;
     }
 
-    // newChildren没遍历完，oldFiber遍历完
+    //初次渲染 || newChildren没遍历完，oldFiber遍历完
     if (oldFiber === null) {
       // If we don't have any more existing children we can choose a fast path
       // since the rest will all be insertions.
@@ -679,7 +685,10 @@ function ChildReconciler(shouldTrackSideEffects) {
         if (newFiber === null) {
           continue;
         }
+
+        // placeChild给当前fiber记录位置
         lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+
         if (previousNewFiber === null) {
           // TODO: Move out of the loop. This only happens for the first run.
           resultingFirstChild = newFiber;

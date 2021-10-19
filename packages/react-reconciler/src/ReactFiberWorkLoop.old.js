@@ -523,7 +523,6 @@ export function scheduleUpdateOnFiber(
 
   const root = markUpdateLaneFromFiberToRoot(fiber, lane);
   if (root === null) {
-    warnAboutUpdateOnUnmountedFiberInDEV(fiber);
     return null;
   }
 
@@ -2752,9 +2751,7 @@ function warnAboutUpdateOnNotYetMountedFiberInDEV(fiber) {
 }
 
 const didWarnStateUpdateForUnmountedComponent: Set<string> | null = null;
-function warnAboutUpdateOnUnmountedFiberInDEV(fiber) {
-  
-}
+
 
 let beginWork;
 beginWork = originalBeginWork;

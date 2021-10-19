@@ -193,7 +193,7 @@ export function createUpdate(eventTime: number, lane: Lane): Update<*> {
   return update;
 }
 
-export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
+export function enqueueUpdate(fiber, update) {
   const updateQueue = fiber.updateQueue;
   if (updateQueue === null) {
     // Only occurs if the fiber has been unmounted.

@@ -202,21 +202,13 @@ import {
 import {unstable_wrap as Schedule_tracing_wrap} from 'scheduler/tracing';
 import {setWorkInProgressVersion} from './ReactMutableSource.old';
 
-import {disableLogs, reenableLogs} from 'shared/ConsolePatchingDev';
-
 const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
 
-let didReceiveUpdate: boolean = false;
+let didReceiveUpdate = false;
 
-let didWarnAboutBadClass;
-let didWarnAboutModulePatternComponent;
-let didWarnAboutContextTypeOnFunctionComponent;
-let didWarnAboutGetDerivedStateOnFunctionComponent;
-let didWarnAboutFunctionRefs;
 export let didWarnAboutReassigningProps;
 let didWarnAboutRevealOrder;
 let didWarnAboutTailOptions;
-let didWarnAboutDefaultPropsOnFunctionComponent;
 
 export function reconcileChildren(
   current: Fiber | null,

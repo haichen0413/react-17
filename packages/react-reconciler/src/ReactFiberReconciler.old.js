@@ -122,14 +122,6 @@ type DevToolsConfig = {|
   rendererConfig?: RendererInspectionConfig,
 |};
 
-let didWarnAboutNestedUpdates;
-let didWarnAboutFindNodeInStrictMode;
-
-if (__DEV__) {
-  didWarnAboutNestedUpdates = false;
-  didWarnAboutFindNodeInStrictMode = {};
-}
-
 function getContextForSubtree(
   parentComponent: ?React$Component<any, any>,
 ): Object {
@@ -174,67 +166,6 @@ function findHostInstanceWithWarning(
   component: Object,
   methodName: string,
 ): PublicInstance | null {
-  if (__DEV__) {
-    const fiber = getInstance(component);
-    if (fiber === undefined) {
-      if (typeof component.render === 'function') {
-        invariant(false, 'Unable to find node on an unmounted component.');
-      } else {
-        invariant(
-          false,
-          'Argument appears to not be a ReactComponent. Keys: %s',
-          Object.keys(component),
-        );
-      }
-    }
-    const hostFiber = findCurrentHostFiber(fiber);
-    if (hostFiber === null) {
-      return null;
-    }
-    if (hostFiber.mode & StrictMode) {
-      const componentName = getComponentName(fiber.type) || 'Component';
-      if (!didWarnAboutFindNodeInStrictMode[componentName]) {
-        didWarnAboutFindNodeInStrictMode[componentName] = true;
-
-        const previousFiber = ReactCurrentFiberCurrent;
-        try {
-          setCurrentDebugFiberInDEV(hostFiber);
-          if (fiber.mode & StrictMode) {
-            console.error(
-              '%s is deprecated in StrictMode. ' +
-                '%s was passed an instance of %s which is inside StrictMode. ' +
-                'Instead, add a ref directly to the element you want to reference. ' +
-                'Learn more about using refs safely here: ' +
-                'https://reactjs.org/link/strict-mode-find-node',
-              methodName,
-              methodName,
-              componentName,
-            );
-          } else {
-            console.error(
-              '%s is deprecated in StrictMode. ' +
-                '%s was passed an instance of %s which renders StrictMode children. ' +
-                'Instead, add a ref directly to the element you want to reference. ' +
-                'Learn more about using refs safely here: ' +
-                'https://reactjs.org/link/strict-mode-find-node',
-              methodName,
-              methodName,
-              componentName,
-            );
-          }
-        } finally {
-          // Ideally this should reset to previous but this shouldn't be called in
-          // render and there's another warning for that anyway.
-          if (previousFiber) {
-            setCurrentDebugFiberInDEV(previousFiber);
-          } else {
-            resetCurrentDebugFiberInDEV();
-          }
-        }
-      }
-    }
-    return hostFiber.stateNode;
-  }
   return findHostInstance(component);
 }
 
@@ -277,7 +208,6 @@ export function updateContainer(
 
   callback = callback === undefined ? null : callback;
   if (callback !== null) {
-    
     update.callback = callback;
   }
 

@@ -32,62 +32,9 @@ import {
   findHostInstance,
   findHostInstanceWithWarning,
 } from 'react-reconciler/src/ReactFiberReconciler';
-import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
-import ReactSharedInternals from 'shared/ReactSharedInternals';
 import {has as hasInstance} from 'shared/ReactInstanceMap';
 
-const ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
-
-let topLevelUpdateWarnings;
-const warnedAboutHydrateAPI = false;
-
-if (__DEV__) {
-  topLevelUpdateWarnings = (container: Container) => {
-    if (container._reactRootContainer && container.nodeType !== COMMENT_NODE) {
-      const hostInstance = findHostInstanceWithNoPortals(
-        container._reactRootContainer._internalRoot.current,
-      );
-      if (hostInstance) {
-        if (hostInstance.parentNode !== container) {
-          console.error(
-            'render(...): It looks like the React-rendered content of this ' +
-              'container was removed without using React. This is not ' +
-              'supported and will cause errors. Instead, call ' +
-              'ReactDOM.unmountComponentAtNode to empty a container.',
-          );
-        }
-      }
-    }
-
-    const isRootRenderedBySomeReact = !!container._reactRootContainer;
-    const rootEl = getReactRootElementInContainer(container);
-    const hasNonRootReactChild = !!(rootEl && getInstanceFromNode(rootEl));
-
-    if (hasNonRootReactChild && !isRootRenderedBySomeReact) {
-      console.error(
-        'render(...): Replacing React-rendered children with a new root ' +
-          'component. If you intended to update the children of this node, ' +
-          'you should instead have the existing children update their state ' +
-          'and render the new components instead of calling ReactDOM.render.',
-      );
-    }
-
-    if (
-      container.nodeType === ELEMENT_NODE &&
-      ((container: any): Element).tagName &&
-      ((container: any): Element).tagName.toUpperCase() === 'BODY'
-    ) {
-      console.error(
-        'render(): Rendering components directly into document.body is ' +
-          'discouraged, since its children are often manipulated by third-party ' +
-          'scripts and browser extensions. This may lead to subtle ' +
-          'reconciliation issues. Try rendering into a container element created ' +
-          'for your app.',
-      );
-    }
-  };
-}
 
 function getReactRootElementInContainer(container: any) {
   if (!container) {
@@ -132,19 +79,6 @@ function legacyCreateRootFromDOMContainer(
         }
       : undefined,
   );
-}
-
-function warnOnInvalidCallback(callback: mixed, callerName: string): void {
-  if (__DEV__) {
-    if (callback !== null && typeof callback !== 'function') {
-      console.error(
-        '%s(...): Expected the last optional `callback` argument to be a ' +
-          'function. Instead received: %s.',
-        callerName,
-        callback,
-      );
-    }
-  }
 }
 
 function legacyRenderSubtreeIntoContainer(
@@ -280,30 +214,7 @@ export function unmountComponentAtNode(container: Container) {
     'unmountComponentAtNode(...): Target container is not a DOM element.',
   );
 
-  if (__DEV__) {
-    const isModernRoot =
-      isContainerMarkedAsRoot(container) &&
-      container._reactRootContainer === undefined;
-    if (isModernRoot) {
-      console.error(
-        'You are calling ReactDOM.unmountComponentAtNode() on a container that was previously ' +
-          'passed to ReactDOM.createRoot(). This is not supported. Did you mean to call root.unmount()?',
-      );
-    }
-  }
-
   if (container._reactRootContainer) {
-    if (__DEV__) {
-      const rootEl = getReactRootElementInContainer(container);
-      const renderedByDifferentReact = rootEl && !getInstanceFromNode(rootEl);
-      if (renderedByDifferentReact) {
-        console.error(
-          "unmountComponentAtNode(): The node you're attempting to unmount " +
-            'was rendered by another copy of React.',
-        );
-      }
-    }
-
     // Unmount should not be batched.
     unbatchedUpdates(() => {
       legacyRenderSubtreeIntoContainer(null, null, container, false, () => {
@@ -316,29 +227,6 @@ export function unmountComponentAtNode(container: Container) {
     // get `true` twice. That's probably fine?
     return true;
   } else {
-    if (__DEV__) {
-      const rootEl = getReactRootElementInContainer(container);
-      const hasNonRootReactChild = !!(rootEl && getInstanceFromNode(rootEl));
-
-      // Check if the container itself is a React root node.
-      const isContainerReactRoot =
-        container.nodeType === ELEMENT_NODE &&
-        isValidContainer(container.parentNode) &&
-        !!container.parentNode._reactRootContainer;
-
-      if (hasNonRootReactChild) {
-        console.error(
-          "unmountComponentAtNode(): The node you're attempting to unmount " +
-            'was rendered by React and is not a top-level container. %s',
-          isContainerReactRoot
-            ? 'You may have accidentally passed in a React root node instead ' +
-                'of its container.'
-            : 'Instead, have the parent component update its state and ' +
-                'rerender in order to remove this component.',
-        );
-      }
-    }
-
     return false;
   }
 }
