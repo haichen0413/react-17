@@ -399,9 +399,7 @@ function updateSimpleMemoComponent(
     const prevProps = current.memoizedProps;
     if (
       shallowEqual(prevProps, nextProps) &&
-      current.ref === workInProgress.ref &&
-      // Prevent bailout if the implementation changed due to hot reload.
-      (__DEV__ ? workInProgress.type === current.type : true)
+      current.ref === workInProgress.ref
     ) {
       didReceiveUpdate = false;
       if (!includesSomeLane(renderLanes, updateLanes)) {
@@ -2401,10 +2399,10 @@ export function markWorkInProgressReceivedUpdate() {
 }
 
 function bailoutOnAlreadyFinishedWork(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  renderLanes: Lanes,
-): Fiber | null {
+  current,
+  workInProgress,
+  renderLanes,
+) {
   if (current !== null) {
     // Reuse previous dependencies
     workInProgress.dependencies = current.dependencies;
@@ -2431,83 +2429,11 @@ function bailoutOnAlreadyFinishedWork(
   }
 }
 
-function remountFiber(
-  current: Fiber,
-  oldWorkInProgress: Fiber,
-  newWorkInProgress: Fiber,
-): Fiber | null {
-  if (__DEV__) {
-    const returnFiber = oldWorkInProgress.return;
-    if (returnFiber === null) {
-      throw new Error('Cannot swap the root fiber.');
-    }
-
-    // Disconnect from the old current.
-    // It will get deleted.
-    current.alternate = null;
-    oldWorkInProgress.alternate = null;
-
-    // Connect to the new tree.
-    newWorkInProgress.index = oldWorkInProgress.index;
-    newWorkInProgress.sibling = oldWorkInProgress.sibling;
-    newWorkInProgress.return = oldWorkInProgress.return;
-    newWorkInProgress.ref = oldWorkInProgress.ref;
-
-    // Replace the child/sibling pointers above it.
-    if (oldWorkInProgress === returnFiber.child) {
-      returnFiber.child = newWorkInProgress;
-    } else {
-      let prevSibling = returnFiber.child;
-      if (prevSibling === null) {
-        throw new Error('Expected parent to have a child.');
-      }
-      while (prevSibling.sibling !== oldWorkInProgress) {
-        prevSibling = prevSibling.sibling;
-        if (prevSibling === null) {
-          throw new Error('Expected to find the previous sibling.');
-        }
-      }
-      prevSibling.sibling = newWorkInProgress;
-    }
-
-    // Delete the old fiber and place the new one.
-    // Since the old fiber is disconnected, we have to schedule it manually.
-    const last = returnFiber.lastEffect;
-    if (last !== null) {
-      last.nextEffect = current;
-      returnFiber.lastEffect = current;
-    } else {
-      returnFiber.firstEffect = returnFiber.lastEffect = current;
-    }
-    current.nextEffect = null;
-    current.flags = Deletion;
-
-    let deletions = returnFiber.deletions;
-    if (deletions === null) {
-      deletions = returnFiber.deletions = [current];
-      returnFiber.flags |= ChildDeletion;
-    } else {
-      deletions.push(current);
-    }
-    current.deletions = deletions;
-
-    newWorkInProgress.flags |= Placement;
-
-    // Restart work from the new fiber.
-    return newWorkInProgress;
-  } else {
-    throw new Error(
-      'Did not expect this call in production. ' +
-        'This is a bug in React. Please file an issue.',
-    );
-  }
-}
-
 function beginWork(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  renderLanes: Lanes,
-): Fiber | null {
+  current,
+  workInProgress,
+  renderLanes,
+) {
   const updateLanes = workInProgress.lanes;
 
   if (current !== null) {
@@ -2812,7 +2738,6 @@ function beginWork(
       const unresolvedProps = workInProgress.pendingProps;
       // Resolve outer props first, then resolve inner props.
       let resolvedProps = resolveDefaultProps(type, unresolvedProps);
-      
       resolvedProps = resolveDefaultProps(type.type, resolvedProps);
       return updateMemoComponent(
         current,

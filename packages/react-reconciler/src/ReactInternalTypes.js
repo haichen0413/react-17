@@ -60,7 +60,7 @@ export type Dependencies = {
 
 // A Fiber is work on a Component that needs to be done or was done. There can
 // be more than one per component.
-export type Fiber = {|
+export type Fiber = {
   // These first fields are conceptually members of an Instance. This used to
   // be split into a separate type and intersected with the other Fiber fields,
   // but until Flow fixes its intersection bugs, we've merged them into a
@@ -174,22 +174,9 @@ export type Fiber = {|
   // This value bubbles up during the "complete" phase.
   // This field is only set when the enableProfilerTimer flag is enabled.
   treeBaseDuration?: number,
+};
 
-  // Conceptual aliases
-  // workInProgress : Fiber ->  alternate The alternate used for reuse happens
-  // to be the same as work in progress.
-  // __DEV__ only
-  _debugID?: number,
-  _debugSource?: Source | null,
-  _debugOwner?: Fiber | null,
-  _debugIsCurrentlyTiming?: boolean,
-  _debugNeedsRemount?: boolean,
-
-  // Used to verify that the order of hooks does not change between renders.
-  _debugHookTypes?: Array<HookType> | null,
-|};
-
-type BaseFiberRootProperties = {|
+type BaseFiberRootProperties = {
   // The type of root (legacy, batched, concurrent, etc.)
   tag: RootTag,
 
@@ -211,12 +198,12 @@ type BaseFiberRootProperties = {|
   context: Object | null,
   pendingContext: Object | null,
   // Determines if we should attempt to hydrate on the initial mount
-  +hydrate: boolean,
+  // +hydrate: boolean,
 
   // Used by useMutableSource hook to avoid tearing during hydration.
-  mutableSourceEagerHydrationData?: Array<
-    MutableSource<any> | MutableSourceVersion,
-  > | null,
+  // mutableSourceEagerHydrationData?: Array<
+  //   MutableSource<any> | MutableSourceVersion,
+  // > | null,
 
   // Node returned by Scheduler.scheduleCallback. Represents the next rendering
   // task that the root will work on.
@@ -235,7 +222,7 @@ type BaseFiberRootProperties = {|
 
   entangledLanes: Lanes,
   entanglements: LaneMap<Lanes>,
-|};
+};
 
 // The following attributes are only used by interaction tracing builds.
 // They enable interactions to be associated with their async work,

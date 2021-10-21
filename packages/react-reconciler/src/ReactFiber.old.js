@@ -402,20 +402,19 @@ export function createHostRootFiber(tag: RootTag): Fiber {
 }
 
 export function createFiberFromTypeAndProps(
-  type: any, // React$ElementType
-  key: null | string,
-  pendingProps: any,
-  owner: null | Fiber,
-  mode: TypeOfMode,
-  lanes: Lanes,
-): Fiber {
+  type, // React$ElementType
+  key,
+  pendingProps,
+  owner,
+  mode,
+  lanes
+) {
   let fiberTag = IndeterminateComponent;
   // The resolved type is set if we know what the final type will be. I.e. it's not lazy.
   let resolvedType = type;
   if (typeof type === 'function') {
     if (shouldConstruct(type)) {
       fiberTag = ClassComponent;
-      
     }
   } else if (typeof type === 'string') {
     fiberTag = HostComponent;

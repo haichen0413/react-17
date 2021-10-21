@@ -118,7 +118,7 @@ function resolveLazy(lazyType) {
 // a compiler or we can do it manually. Helpers that don't need this branching
 // live outside of this function.
 function ChildReconciler(shouldTrackSideEffects) {
-  function deleteChild(returnFiber: Fiber, childToDelete: Fiber): void {
+  function deleteChild(returnFiber, childToDelete) {
     if (!shouldTrackSideEffects) {
       // Noop.
       return;
@@ -545,50 +545,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     child: mixed,
     knownKeys: Set<string> | null,
     returnFiber: Fiber,
-  ): Set<string> | null {
-    if (__DEV__) {
-      if (typeof child !== 'object' || child === null) {
-        return knownKeys;
-      }
-      switch (child.$$typeof) {
-        case REACT_ELEMENT_TYPE:
-        case REACT_PORTAL_TYPE:
-          warnForMissingKey(child, returnFiber);
-          const key = child.key;
-          if (typeof key !== 'string') {
-            break;
-          }
-          if (knownKeys === null) {
-            knownKeys = new Set();
-            knownKeys.add(key);
-            break;
-          }
-          if (!knownKeys.has(key)) {
-            knownKeys.add(key);
-            break;
-          }
-          console.error(
-            'Encountered two children with the same key, `%s`. ' +
-              'Keys should be unique so that components maintain their identity ' +
-              'across updates. Non-unique keys may cause children to be ' +
-              'duplicated and/or omitted — the behavior is unsupported and ' +
-              'could change in a future version.',
-            key,
-          );
-          break;
-        case REACT_LAZY_TYPE:
-          if (enableLazyElements) {
-            const payload = child._payload;
-            const init = child._init
-            warnOnInvalidKey(init(payload), knownKeys, returnFiber);
-            break;
-          }
-        // We intentionally fallthrough here if enableLazyElements is not on.
-        // eslint-disable-next-lined no-fallthrough
-        default:
-          break;
-      }
-    }
+  ) {
     return knownKeys;
   }
 

@@ -121,7 +121,7 @@ type ReactTypeOfSideEffectType = {|
 
 function getFiberFlags(fiber: Fiber): number {
   // The name of this field changed from "effectTag" to "flags"
-  return fiber.flags !== undefined ? fiber.flags : (fiber: any).effectTag;
+  return fiber.flags !== undefined ? fiber.flags : fiber.effectTag;
 }
 
 // Some environments (e.g. React Native / Hermes) don't support the performance API yet.

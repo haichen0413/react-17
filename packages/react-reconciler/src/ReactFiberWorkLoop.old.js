@@ -1472,7 +1472,7 @@ export function renderHasNotSuspendedYet(): boolean {
 
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
   const prevExecutionContext = executionContext;
-  executionContext |= RenderContext;
+  executionContext |= RenderContext; // 去掉render执行上下文标记
   const prevDispatcher = pushDispatcher();
 
   // If the root or lanes have changed, throw out the existing stack
@@ -1490,6 +1490,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 
   do {
     try {
+      // 真正的逻辑
       workLoopSync();
       break;
     } catch (thrownValue) {
