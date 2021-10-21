@@ -125,7 +125,6 @@ import {
   Layout as HookLayout,
   Passive as HookPassive,
 } from './ReactHookEffectTags';
-import {didWarnAboutReassigningProps} from './ReactFiberBeginWork.old';
 
 
 const PossiblyWeakSet = typeof WeakSet === 'function' ? WeakSet : Set;
@@ -187,18 +186,10 @@ function safelyDetachRef(current: Fiber) {
 }
 
 function safelyCallDestroy(current: Fiber, destroy: () => void) {
-  if (__DEV__) {
-    invokeGuardedCallback(null, destroy, null);
-    if (hasCaughtError()) {
-      const error = clearCaughtError();
-      captureCommitPhaseError(current, error);
-    }
-  } else {
-    try {
-      destroy();
-    } catch (error) {
-      captureCommitPhaseError(current, error);
-    }
+  try {
+    destroy();
+  } catch (error) {
+    captureCommitPhaseError(current, error);
   }
 }
 
@@ -367,10 +358,10 @@ export function commitPassiveEffectDurations(
 
 function commitLifeCycles(
   finishedRoot: FiberRoot,
-  current: Fiber | null,
-  finishedWork: Fiber,
-  committedLanes: Lanes,
-): void {
+  current,
+  finishedWork,
+  committedLanes
+) {
   switch (finishedWork.tag) {
     case FunctionComponent:
     case ForwardRef:
@@ -404,33 +395,7 @@ function commitLifeCycles(
           // We could update instance props and state here,
           // but instead we rely on them being set during last render.
           // TODO: revisit this when we implement resuming.
-          if (__DEV__) {
-            if (
-              finishedWork.type === finishedWork.elementType &&
-              !didWarnAboutReassigningProps
-            ) {
-              if (instance.props !== finishedWork.memoizedProps) {
-                console.error(
-                  'Expected %s props to match memoized props before ' +
-                    'componentDidMount. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.props`. ' +
-                    'Please file an issue.',
-                  getComponentName(finishedWork.type) || 'instance',
-                );
-              }
-              if (instance.state !== finishedWork.memoizedState) {
-                console.error(
-                  'Expected %s state to match memoized state before ' +
-                    'componentDidMount. ' +
-                    'This might either be because of a bug in React, or because ' +
-                    'a component reassigns its own `this.state`. ' +
-                    'Please file an issue.',
-                  getComponentName(finishedWork.type) || 'instance',
-                );
-              }
-            }
-          }
+          
           if (
             enableProfilerTimer &&
             enableProfilerCommitHooks &&
@@ -511,7 +476,7 @@ function commitLifeCycles(
       return;
     }
     case HostComponent: {
-      const instance: Instance = finishedWork.stateNode;
+      const instance = finishedWork.stateNode;
 
       // Renderers may schedule work to be done after host components are mounted
       // (eg DOM renderer may schedule auto-focus for inputs and form controls).
@@ -622,18 +587,13 @@ function commitLifeCycles(
     case LegacyHiddenComponent:
       return;
   }
-  invariant(
-    false,
-    'This unit of work tag should not have side-effects. This error is ' +
-      'likely caused by a bug in React. Please file an issue.',
-  );
 }
 
 function hideOrUnhideAllChildren(finishedWork, isHidden) {
   if (supportsMutation) {
     // We only have the top Fiber that was inserted but we need to recurse down its
     // children to find all the terminal nodes.
-    let node: Fiber = finishedWork;
+    let node = finishedWork;
     while (true) {
       if (node.tag === HostComponent) {
         const instance = node.stateNode;
@@ -652,7 +612,7 @@ function hideOrUnhideAllChildren(finishedWork, isHidden) {
       } else if (
         (node.tag === OffscreenComponent ||
           node.tag === LegacyHiddenComponent) &&
-        (node.memoizedState: OffscreenState) !== null &&
+        node.memoizedState !== null &&
         node !== finishedWork
       ) {
         // Found a nested Offscreen component that is hidden. Don't search
@@ -745,7 +705,7 @@ function commitUnmount(
   finishedRoot: FiberRoot,
   current: Fiber,
   renderPriorityLevel: ReactPriorityLevel,
-): void {
+) {
   onCommitUnmount(current);
 
   switch (current.tag) {
@@ -753,7 +713,7 @@ function commitUnmount(
     case ForwardRef:
     case MemoComponent:
     case SimpleMemoComponent: {
-      const updateQueue: FunctionComponentUpdateQueue | null = (current.updateQueue: any);
+      const updateQueue: FunctionComponentUpdateQueue | null = current.updateQueue
       if (updateQueue !== null) {
         const lastEffect = updateQueue.lastEffect;
         if (lastEffect !== null) {
@@ -843,7 +803,7 @@ function commitNestedUnmounts(
   finishedRoot: FiberRoot,
   root: Fiber,
   renderPriorityLevel: ReactPriorityLevel,
-): void {
+) {
   // While we're inside a removed host node we don't want to call
   // removeChild on the inner nodes because they're removed by the top
   // call anyway. We also want to call componentWillUnmount on all

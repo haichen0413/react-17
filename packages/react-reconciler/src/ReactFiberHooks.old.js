@@ -174,7 +174,7 @@ let hookTypesUpdateIndexDev: number = -1;
 // In DEV, this tracks whether currently rendering component needs to ignore
 // the dependencies for Hooks that need them (e.g. useEffect or useMemo).
 // When true, such Hooks will always be "remounted". Only used during hot reload.
-let ignorePreviousDependencies: boolean = false;
+const ignorePreviousDependencies: boolean = false;
 
 function mountHookTypesDev() {
   if (__DEV__) {
@@ -329,20 +329,9 @@ export function renderWithHooks<Props, SecondArg>(
   props: Props,
   secondArg: SecondArg,
   nextRenderLanes: Lanes,
-): any {
+) {
   renderLanes = nextRenderLanes;
   currentlyRenderingFiber = workInProgress;
-
-  if (__DEV__) {
-    hookTypesDev =
-      current !== null
-        ? ((current._debugHookTypes: any): Array<HookType>)
-        : null;
-    hookTypesUpdateIndexDev = -1;
-    // Used for hot reloading:
-    ignorePreviousDependencies =
-      current !== null && current.type !== workInProgress.type;
-  }
 
   workInProgress.memoizedState = null;
   workInProgress.updateQueue = null;
@@ -361,25 +350,10 @@ export function renderWithHooks<Props, SecondArg>(
   // Using memoizedState to differentiate between mount/update only works if at least one stateful hook is used.
   // Non-stateful hooks (e.g. context) don't get added to memoizedState,
   // so memoizedState would be null during updates and mounts.
-  if (__DEV__) {
-    if (current !== null && current.memoizedState !== null) {
-      ReactCurrentDispatcher.current = HooksDispatcherOnUpdateInDEV;
-    } else if (hookTypesDev !== null) {
-      // This dispatcher handles an edge case where a component is updating,
-      // but no stateful hooks have been used.
-      // We want to match the production code behavior (which will use HooksDispatcherOnMount),
-      // but with the extra DEV validation to ensure hooks ordering hasn't changed.
-      // This dispatcher does that.
-      ReactCurrentDispatcher.current = HooksDispatcherOnMountWithHookTypesInDEV;
-    } else {
-      ReactCurrentDispatcher.current = HooksDispatcherOnMountInDEV;
-    }
-  } else {
-    ReactCurrentDispatcher.current =
-      current === null || current.memoizedState === null
-        ? HooksDispatcherOnMount
-        : HooksDispatcherOnUpdate;
-  }
+  ReactCurrentDispatcher.current =
+    current === null || current.memoizedState === null
+      ? HooksDispatcherOnMount
+      : HooksDispatcherOnUpdate;
 
   let children = Component(props, secondArg);
 
@@ -397,11 +371,6 @@ export function renderWithHooks<Props, SecondArg>(
       );
 
       numberOfReRenders += 1;
-      if (__DEV__) {
-        // Even when hot reloading, allow dependencies to stabilize
-        // after first render to prevent infinite render phase updates.
-        ignorePreviousDependencies = false;
-      }
 
       // Start over from the beginning of the list
       currentHook = null;
@@ -409,14 +378,7 @@ export function renderWithHooks<Props, SecondArg>(
 
       workInProgress.updateQueue = null;
 
-      if (__DEV__) {
-        // Also validate hook order for cascading updates.
-        hookTypesUpdateIndexDev = -1;
-      }
-
-      ReactCurrentDispatcher.current = __DEV__
-        ? HooksDispatcherOnRerenderInDEV
-        : HooksDispatcherOnRerender;
+      ReactCurrentDispatcher.current = HooksDispatcherOnRerender
 
       children = Component(props, secondArg);
     } while (didScheduleRenderPhaseUpdateDuringThisPass);
@@ -426,34 +388,18 @@ export function renderWithHooks<Props, SecondArg>(
   // at the beginning of the render phase and there's no re-entrancy.
   ReactCurrentDispatcher.current = ContextOnlyDispatcher;
 
-  if (__DEV__) {
-    workInProgress._debugHookTypes = hookTypesDev;
-  }
-
   // This check uses currentHook so that it works the same in DEV and prod bundles.
   // hookTypesDev could catch more cases (e.g. context) but only in DEV bundles.
   const didRenderTooFewHooks =
     currentHook !== null && currentHook.next !== null;
 
   renderLanes = NoLanes;
-  currentlyRenderingFiber = (null: any);
+  currentlyRenderingFiber = null
 
   currentHook = null;
   workInProgressHook = null;
 
-  if (__DEV__) {
-    currentHookNameInDev = null;
-    hookTypesDev = null;
-    hookTypesUpdateIndexDev = -1;
-  }
-
   didScheduleRenderPhaseUpdate = false;
-
-  invariant(
-    !didRenderTooFewHooks,
-    'Rendered fewer hooks than expected. This may be caused by an accidental ' +
-      'early return statement.',
-  );
 
   return children;
 }

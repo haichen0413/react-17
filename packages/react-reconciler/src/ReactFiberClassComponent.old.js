@@ -212,10 +212,10 @@ function adoptClassInstance(workInProgress: Fiber, instance: any): void {
 }
 
 function constructClassInstance(
-  workInProgress: Fiber,
+  workInProgress,
   ctor: any,
-  props: any,
-): any {
+  props
+) {
   let isLegacyContextConsumer = false;
   let unmaskedContext = emptyContextObject;
   let context = emptyContextObject;

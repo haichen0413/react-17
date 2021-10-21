@@ -713,7 +713,7 @@ function ChildReconciler(shouldTrackSideEffects) {
         returnFiber,
         newIdx,
         newChildren[newIdx],
-        lanes,
+        lanes, 
       );
       if (newFiber !== null) {
         if (shouldTrackSideEffects) {
@@ -751,7 +751,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     currentFirstChild: Fiber | null,
     newChildrenIterable: Iterable<*>,
     lanes: Lanes,
-  ): Fiber | null {
+  ) {
     // This is the same implementation as reconcileChildrenArray(),
     // but using the iterator instead.
 
