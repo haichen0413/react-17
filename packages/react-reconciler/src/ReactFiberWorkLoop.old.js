@@ -566,6 +566,8 @@ export function scheduleUpdateOnFiber(
   // priority as an argument to that function and this one.
   const priorityLevel = getCurrentPriorityLevel();
 
+
+  // render 
   if (lane === SyncLane) {
     if (
       // Check if we're inside unbatchedUpdates
@@ -958,8 +960,7 @@ function markRootSuspended(root, suspendedLanes) {
   markRootSuspended_dontCallThisOneDirectly(root, suspendedLanes);
 }
 
-// This is the entry point for synchronous tasks that don't go
-// through Scheduler
+// 同步任务入口
 function performSyncWorkOnRoot(root) {
   if (enableProfilerTimer && enableProfilerNestedUpdatePhase) {
     syncNestedUpdateFlag();
@@ -1029,7 +1030,7 @@ function performSyncWorkOnRoot(root) {
 
   // We now have a consistent tree. Because this is a sync render, we
   // will commit it even if something suspended.
-  const finishedWork: Fiber = (root.current.alternate: any);
+  const finishedWork: Fiber = root.current.alternate
   root.finishedWork = finishedWork;
   root.finishedLanes = lanes;
   commitRoot(root);
@@ -1075,7 +1076,7 @@ export function flushDiscreteUpdates() {
   flushPassiveEffects();
 }
 
-export function deferredUpdates<A>(fn: () => A): A {
+export function deferredUpdates<A>(fn: () => A) {
   if (decoupleUpdatePriorityFromScheduler) {
     const previousLanePriority = getCurrentUpdateLanePriority();
     try {
@@ -1512,8 +1513,6 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
     );
   }
 
-  
-
   if (enableSchedulingProfiler) {
     markRenderStopped();
   }
@@ -1601,7 +1600,7 @@ function workLoopConcurrent() {
   }
 }
 
-function performUnitOfWork(unitOfWork: Fiber): void {
+function performUnitOfWork(unitOfWork: Fiber) {
   // The current, flushed, state of this fiber is the alternate. Ideally
   // nothing should rely on this, but relying on it here means that we don't
   // need an additional field on the work in progress.
@@ -1627,7 +1626,7 @@ function performUnitOfWork(unitOfWork: Fiber): void {
   ReactCurrentOwner.current = null;
 }
 
-function completeUnitOfWork(unitOfWork: Fiber): void {
+function completeUnitOfWork(unitOfWork: Fiber) {
   // Attempt to complete the current unit of work, then move to the next
   // sibling. If there are no more siblings, return to the parent fiber.
   let completedWork = unitOfWork;
@@ -1780,8 +1779,6 @@ function commitRootImpl(root, renderPriorityLevel) {
     // flush synchronous work at the end, to avoid factoring hazards like this.
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
-  flushRenderPhaseStrictModeWarningsInDEV();
-
   const finishedWork = root.finishedWork;
   const lanes = root.finishedLanes;
 
@@ -1832,10 +1829,6 @@ function commitRootImpl(root, renderPriorityLevel) {
     workInProgressRoot = null;
     workInProgress = null;
     workInProgressRootRenderLanes = NoLanes;
-  } else {
-    // This indicates that the last root we worked on is not the same one that
-    // we're committing now. This most commonly happens when a suspended root
-    // times out.
   }
 
   // Get the list of effects.
@@ -2722,10 +2715,6 @@ function checkForNestedUpdates() {
     );
   }
 
-}
-
-function flushRenderPhaseStrictModeWarningsInDEV() {
-  
 }
 
 const didWarnStateUpdateForNotYetMountedComponent: Set<string> | null = null;

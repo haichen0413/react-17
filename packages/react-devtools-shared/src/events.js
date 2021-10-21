@@ -7,13 +7,13 @@
  * @flow
  */
 
-export default class EventEmitter<Events: Object> {
-  listenersMap: Map<string, Array<Function>> = new Map();
+export default class EventEmitter {
+  listenersMap = new Map();
 
-  addListener<Event: $Keys<Events>>(
+  addListener(
     event: Event,
-    listener: (...$ElementType<Events, Event>) => any,
-  ): void {
+    listener,
+  ) {
     const listeners = this.listenersMap.get(event);
     if (listeners === undefined) {
       this.listenersMap.set(event, [listener]);
@@ -25,10 +25,10 @@ export default class EventEmitter<Events: Object> {
     }
   }
 
-  emit<Event: $Keys<Events>>(
+  emit(
     event: Event,
-    ...args: $ElementType<Events, Event>
-  ): void {
+    ...args
+  ) {
     const listeners = this.listenersMap.get(event);
     if (listeners !== undefined) {
       if (listeners.length === 1) {
@@ -59,11 +59,11 @@ export default class EventEmitter<Events: Object> {
     }
   }
 
-  removeAllListeners(): void {
+  removeAllListeners() {
     this.listenersMap.clear();
   }
 
-  removeListener(event: $Keys<Events>, listener: Function): void {
+  removeListener(event, listener) {
     const listeners = this.listenersMap.get(event);
     if (listeners !== undefined) {
       const index = listeners.indexOf(listener);
