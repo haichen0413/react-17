@@ -1499,7 +1499,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
   } while (true);
   resetContextDependencies();
   if (enableSchedulerTracing) {
-    popInteractions(((prevInteractions: any): Set<Interaction>));
+    popInteractions(prevInteractions);
   }
 
   executionContext = prevExecutionContext;
@@ -1601,7 +1601,7 @@ function workLoopConcurrent() {
   }
 }
 
-function performUnitOfWork(unitOfWork: Fiber) {
+function performUnitOfWork(unitOfWork) {
   // The current, flushed, state of this fiber is the alternate. Ideally
   // nothing should rely on this, but relying on it here means that we don't
   // need an additional field on the work in progress.
@@ -1609,10 +1609,12 @@ function performUnitOfWork(unitOfWork: Fiber) {
 
   let next;
   if (enableProfilerTimer && (unitOfWork.mode & ProfileMode) !== NoMode) {
+    // 开发环境性能
     startProfilerTimer(unitOfWork);
     next = beginWork(current, unitOfWork, subtreeRenderLanes);
     stopProfilerTimerIfRunningAndRecordDelta(unitOfWork, true);
   } else {
+    // 主干逻辑
     next = beginWork(current, unitOfWork, subtreeRenderLanes);
   }
 
@@ -1627,7 +1629,7 @@ function performUnitOfWork(unitOfWork: Fiber) {
   ReactCurrentOwner.current = null;
 }
 
-function completeUnitOfWork(unitOfWork: Fiber) {
+function completeUnitOfWork(unitOfWork) {
   // Attempt to complete the current unit of work, then move to the next
   // sibling. If there are no more siblings, return to the parent fiber.
   let completedWork = unitOfWork;

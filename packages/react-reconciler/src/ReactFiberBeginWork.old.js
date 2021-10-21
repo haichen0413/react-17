@@ -2437,6 +2437,7 @@ function beginWork(
   const updateLanes = workInProgress.lanes;
 
   if (current !== null) {
+    // 表示更新
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
 
@@ -2450,6 +2451,7 @@ function beginWork(
       // This may be unset if the props are determined to be equal later (memo).
       didReceiveUpdate = true;
     } else if (!includesSomeLane(renderLanes, updateLanes)) {
+      // 没有挂载中的任务了
       didReceiveUpdate = false;
       // This fiber does not have any pending work. Bailout without entering
       // the begin phase. There's still some bookkeeping we that needs to be done
@@ -2499,7 +2501,7 @@ function beginWork(
           }
           break;
         case SuspenseComponent: {
-          const state: SuspenseState | null = workInProgress.memoizedState;
+          const state = workInProgress.memoizedState;
           if (state !== null) {
             if (enableSuspenseServerRenderer) {
               if (state.dehydrated !== null) {
@@ -2521,7 +2523,7 @@ function beginWork(
             // whether to retry the primary children, or to skip over it and
             // go straight to the fallback. Check the priority of the primary
             // child fragment.
-            const primaryChildFragment: Fiber = (workInProgress.child: any);
+            const primaryChildFragment: Fiber = workInProgress.child;
             const primaryChildLanes = primaryChildFragment.childLanes;
             if (includesSomeLane(renderLanes, primaryChildLanes)) {
               // The primary children have pending work. Use the normal path
@@ -2639,6 +2641,7 @@ function beginWork(
       }
     }
   } else {
+    // 初次渲染
     didReceiveUpdate = false;
   }
 

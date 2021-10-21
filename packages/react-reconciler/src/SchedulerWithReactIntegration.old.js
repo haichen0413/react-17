@@ -124,10 +124,10 @@ function reactPriorityToSchedulerPriority(reactPriorityLevel) {
   }
 }
 
-export function runWithPriority<T>(
+export function runWithPriority(
   reactPriorityLevel: ReactPriorityLevel,
   fn: () => T,
-): T {
+) {
   const priorityLevel = reactPriorityToSchedulerPriority(reactPriorityLevel);
   return Scheduler_runWithPriority(priorityLevel, fn);
 }
