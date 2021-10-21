@@ -17,18 +17,14 @@ import type {Effect as HookEffect} from './ReactFiberHooks.old';
 import type {StackCursor} from './ReactFiberStack.old';
 
 import {
-  warnAboutDeprecatedLifecycles,
   enableSuspenseServerRenderer,
-  replayFailedUnitOfWorkWithInvokeGuardedCallback,
   enableProfilerTimer,
   enableProfilerCommitHooks,
   enableProfilerNestedUpdatePhase,
   enableProfilerNestedUpdateScheduledHook,
   enableSchedulerTracing,
-  warnAboutUnmockedScheduler,
   deferRenderPhaseUpdateToNextBatch,
   decoupleUpdatePriorityFromScheduler,
-  enableDebugTracing,
   enableSchedulingProfiler,
   enableScopeAPI,
 } from 'shared/ReactFeatureFlags';
@@ -50,16 +46,6 @@ import {
   flushSyncCallbackQueue,
   scheduleSyncCallback,
 } from './SchedulerWithReactIntegration.old';
-import {
-  logCommitStarted,
-  logCommitStopped,
-  logLayoutEffectsStarted,
-  logLayoutEffectsStopped,
-  logPassiveEffectsStarted,
-  logPassiveEffectsStopped,
-  logRenderStarted,
-  logRenderStopped,
-} from './DebugTracing';
 import {
   markCommitStarted,
   markCommitStopped,
@@ -83,7 +69,6 @@ import {
   scheduleTimeout,
   cancelTimeout,
   noTimeout,
-  warnsIfNotActing,
   beforeActiveInstanceBlur,
   afterActiveInstanceBlur,
   clearContainer,
@@ -91,7 +76,6 @@ import {
 
 import {
   createWorkInProgress,
-  assignFiberPropertiesInDEV,
 } from './ReactFiber.old';
 import {
   NoMode,
@@ -197,7 +181,6 @@ import {resetContextDependencies} from './ReactFiberNewContext.old';
 import {
   resetHooksAfterThrow,
   ContextOnlyDispatcher,
-  getIsUpdatingOpaqueValueInRenderPhaseInDEV,
 } from './ReactFiberHooks.old';
 import {createCapturedValue} from './ReactCapturedValue';
 import {
